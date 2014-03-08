@@ -1,5 +1,8 @@
 CC=g++
-CFLAGS=`pkg-config --libs --cflags opencv` -ldl -lm
+CFLAGS=`pkg-config --libs --cflags opencv  --cflags libcurl` -ldl -lm
 
-%: %.cpp
-	$(CC) $< $(CFLAGS) -o $@
+%.o: %.cpp
+	$(CC) -c $< -o $@
+
+%: %.cpp control.o
+	$(CC) $^ $(CFLAGS) -o $@

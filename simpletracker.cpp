@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <iostream>
 #include "opencv2/core/core.hpp"
 #include "opencv2/features2d/features2d.hpp"
@@ -6,29 +7,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
-#include "control.h"
-
 using namespace cv;
-
-void __inline__ adjust(Point2f center, int lx, int ly)
-{
-    static bool move_vertical;
-    static int wait = 10;
-	int offx = center.x - lx/2;
-	int offy = center.y - ly/2;
-	if(wait) { wait--; return; }
-	if( (move_vertical || abs(offx) < 15) && abs(offy) > 15 )
-	{
-		move( (offx<0)?CAM_UP:CAM_DW , 10);
-		wait = 5;
-	}
-	else if (abs(offx) > 15 )
-	{
-		move( (offx<0)?CAM_RH:CAM_LF , 10);
-		wait = 5;
-	}
-	move_vertical != move_vertical;
-}
 
 int main(int argc, char * argv[])
 {
@@ -37,7 +16,7 @@ int main(int argc, char * argv[])
 		std::cout << "Use: tracker <target_image>" << std::endl;
         return -1;
 	}
-	std::cout << "Load target: " << std::endl;
+	
     Mat mTarget = imread( argv[1], CV_LOAD_IMAGE_GRAYSCALE );
 
     if( !mTarget.data )
@@ -45,14 +24,13 @@ int main(int argc, char * argv[])
         std::cout<< "Error reading target image." << std::endl;
         return -1;
     }
-	std::cout << "\t\t\tDone" << std::endl;
+
     //Detect the keypoints using SURF Detector
     int minHessian = 500;
-	
+
     SurfFeatureDetector detector( minHessian );
     std::vector<KeyPoint> kpTarget;
-	
-	std::cout << "Analize target image: " << std::endl;
+
     detector.detect( mTarget, kpTarget );
 
     //Calculate descriptors (feature vectors)
@@ -60,15 +38,12 @@ int main(int argc, char * argv[])
     Mat des_object;
 
     extractor.compute( mTarget, kpTarget, des_object );
-	std::cout << "\t\t\tDone" << std::endl;
-	std::cout << "Creating macher: " << std::endl;
+
     FlannBasedMatcher matcher;
-    std::cout << "\t\t\tDone" << std::endl;
-	std::cout << "Init capture: " << std::endl;
-    VideoCapture cap("http://192.168.1.200/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
-	//VideoCapture cap("http://nidq.no-ip.org/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
-	std::cout << "\t\t\tDone" << std::endl;
-	
+
+    //VideoCapture cap("http://192.168.1.200/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
+	VideoCapture cap("http://nidq.no-ip.org/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
+
     namedWindow("Capture");
 
     std::vector<Point2f> tgt_corners(4);
@@ -80,12 +55,18 @@ int main(int argc, char * argv[])
     tgt_corners[3] = cvPoint( 0, mTarget.rows );
 
     char key = 'a';
+    int framecount = 0;
     while (key != 27)
     {
         Mat frame;
-        
-        for(int i = 0; i < 5; i++) cap >> frame;
-        Mat show = frame.clone();
+        cap >> frame;
+
+        if (framecount < 5)
+        {
+            framecount++;
+            continue;
+        }
+
         Mat des_image, img_matches;
         std::vector<KeyPoint> kpImage;
         std::vector<vector<DMatch > > matches;
@@ -111,6 +92,9 @@ int main(int argc, char * argv[])
             }
         }
 
+        //Draw only "good" matches
+        drawMatches( mTarget, kpTarget, image, kpImage, good_matches, img_matches, Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+
         if (good_matches.size() >= 4)
         {
             for( int i = 0; i < good_matches.size(); i++ )
@@ -123,24 +107,16 @@ int main(int argc, char * argv[])
             H = findHomography( obj, scene, CV_RANSAC );
 
             perspectiveTransform( tgt_corners, scene_corners, H);
-            
-            Point2f center(0,0);
-            for(int i = 0; i < 4; i++)
-            {
-				center.x += scene_corners[i].x;
-				center.y += scene_corners[i].y;
-			}
-			center.x/=4; center.y/=4;
 
-			circle( show, center, 5, Scalar( 255, 255, 0) );
-			
-			adjust(center, frame.cols, frame.rows);
+            //Draw lines between the corners (the mapped object in the scene image )
+            line( img_matches, scene_corners[0] + Point2f( mTarget.cols, 0), scene_corners[1] + Point2f( mTarget.cols, 0), Scalar(0, 255, 0), 4 );
+            line( img_matches, scene_corners[1] + Point2f( mTarget.cols, 0), scene_corners[2] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
+            line( img_matches, scene_corners[2] + Point2f( mTarget.cols, 0), scene_corners[3] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
+            line( img_matches, scene_corners[3] + Point2f( mTarget.cols, 0), scene_corners[0] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
         }
-		line( show,  Point2f( show.cols/2, 0), Point2f( show.cols/2, show.rows), Scalar(0, 255, 0), 4 );
-        line( show,  Point2f( 0, show.rows/2), Point2f( show.cols, show.rows/2), Scalar(0, 255, 0), 4 );
-            
+
         //Show detected matches
-        imshow( "Capture", show );
+        imshow( "Capture", img_matches );
 
         key = waitKey(1);
     }
