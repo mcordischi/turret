@@ -1,11 +1,9 @@
 #include "CameraControl.h"
-//#include "AlarmTriggerer.h"
-#include "curl/curl.h"
 #include <iostream>
 #include <cstdlib>
 
 
-CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* login){
+CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char* pwd){
  //   this.alarmTriggerer = at;
     this->cameraURL = url;
 
@@ -16,12 +14,26 @@ CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* login){
         std::exit(1);
     }
 
-    curl_easy_setopt(curl,CURLOPT_USERPWD,login);
 
+    char auxURL[100];
+    sprintf((char*)&auxURL, "%s:%s",user,pwd);
+    curl_easy_setopt(curl,CURLOPT_USERPWD,auxURL);
+
+    moveStep(25); //Wait!?
+
+    //get the camera
+    sprintf((char*)&auxURL, "%s/videostream.cgi?user=%s&pwd=%s&resolution=32&dummy=.mjgp",cameraURL,user,pwd);
+    cvCamera= new cv::VideoCapture(auxURL);
 }
 
     //Moves the camera in a specific direction and stops
 bool CameraControl::move(int dir, int degree){
+
+    if (!checkMovement(dir,degree)){
+        std::cout << "Movement denied - Cannot move that direction anymore";
+        return false;
+    }
+
     char url[75];
 
     sprintf((char*)&url, "%s/decoder_control.cgi?command=%i&onestep=1&degree=%i",cameraURL, dir, degree);
@@ -29,9 +41,57 @@ bool CameraControl::move(int dir, int degree){
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
     CURLcode result = curl_easy_perform(curl);
-    return (result == CURLE_OK);
+    if (result == CURLE_OK){
+        // wait
+        int maxj = 1;
+        if (dir == CAM_CENTER) maxj=100; //wait more!
+        for(int j=0;j<maxj;j++)
+            for(long int i=0; i<MOVE_DELAY*degree*maxj;i++);
+
+        updateCoordinates(dir,degree);
+        return true;
+    }
+    return false;
+
+
 }
 
+// Like move, but with a given degree.
+// Comment: the onestep parameter without degree moves the camera approx. 10 degree,
+// now the step is setted by software (not the camera) and uses the degree param.
+bool CameraControl::moveStep(int dir){
+    move(dir,STEP_DEGREE);
+}
+
+//Checks wheter the movement is possible considering the angle
+bool CameraControl::checkMovement(int dir, int degree){
+    switch(dir){
+        case CAM_UP: return ((coordinates.y+degree) <= MAX_UP);
+        case CAM_DW: return ((coordinates.y-degree) >= MAX_DW);
+        case CAM_RH: return ((coordinates.x+degree) <= MAX_RH);
+        case CAM_LF: return ((coordinates.x-degree) >= MAX_LF);
+        case CAM_CENTER: return true;
+        default: std::cout << "Warning, strange command";
+        }
+    return true;
+}
+
+void CameraControl::updateCoordinates(int dir, int degree){
+        switch(dir){
+            case CAM_UP: coordinates.y += degree;
+                         break;
+            case CAM_DW: coordinates.y -= degree;
+                         break;
+            case CAM_RH: coordinates.x += degree;
+                         break;
+            case CAM_LF: coordinates.x -= degree;
+                         break;
+            case CAM_CENTER: coordinates.x = 0;
+                             coordinates.y = 0;
+                             break;
+            default: std::cout << "Warning, strange command";
+        }
+}
 
     //Moves the camera to a position
 bool CameraControl::move(Coordinates_t coord){
@@ -41,20 +101,19 @@ bool CameraControl::move(Coordinates_t coord){
 
     //Return the X and Y position of the camera
 Coordinates_t CameraControl::getCoordinates(){
-    //TODO
-    Coordinates_t result;
-    return result;
+    return coordinates;
 }
 
     //Returns the lastest frame obtained from the camera
 cv::Mat* CameraControl::getFrame(){
-    //TODO
-    return NULL;
+    cv::Mat* frame;
+    (*cvCamera) >> (*frame);
+    return frame;
 }
 
 //Triggers the alarm
 bool CameraControl::triggerAlarm(){
-        //TODO
+        //TODO How?
         return FAILURE;
     }
 
