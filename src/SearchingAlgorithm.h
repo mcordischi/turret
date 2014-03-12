@@ -1,8 +1,14 @@
-#include"MovingAlgorithm.h"
+#include "MovingAlgorithm.h"
+#include "CameraControl.h"
 
-public class SearchingAlgorithm {
+class SearchingAlgorithm {
+    private:
+        MovingAlgorithm* move;
+        CameraControl* control;
 
-    SearchingAlgorithm(MovingAlgorithm,CameraControl);
+    public:
 
-    bool identifyItem(/*Image*/);
+        SearchingAlgorithm(MovingAlgorithm*,CameraControl*);
+
+        bool identifyItem(char* picPath);
 };
