@@ -6,7 +6,10 @@
 CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char* pwd){
  //   this.alarmTriggerer = at;
     this->cameraURL = url;
+    this->user = user;
+    this->pwd = pwd;
 
+    CURL* curl;
     //Connect to camera
     curl = curl_easy_init();
     if(!curl){
@@ -18,13 +21,19 @@ CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char
     char auxURL[100];
     sprintf((char*)&auxURL, "%s:%s",user,pwd);
     curl_easy_setopt(curl,CURLOPT_USERPWD,auxURL);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
-    moveStep(25); //Wait!?
+ //   moveStep(CAM_CENTRE); //Wait!?
 
     //get the camera
     sprintf((char*)&auxURL, "%s/videostream.cgi?user=%s&pwd=%s&resolution=32&dummy=.mjgp",cameraURL,user,pwd);
     cvCamera= new cv::VideoCapture(auxURL);
+   curl_easy_cleanup(curl);
+
 }
+
+
+
 
     //Moves the camera in a specific direction and stops
 bool CameraControl::move(int dir, int degree){
@@ -38,22 +47,32 @@ bool CameraControl::move(int dir, int degree){
 
     sprintf((char*)&url, "%s/decoder_control.cgi?command=%i&onestep=1&degree=%i",cameraURL, dir, degree);
 
+    CURL* curl;
+    curl = curl_easy_init();
+
+    char auxURL[100];
+    sprintf((char*)&auxURL, "%s:%s",user,pwd);
+    curl_easy_setopt(curl,CURLOPT_USERPWD,auxURL);
+
+
+
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
     CURLcode result = curl_easy_perform(curl);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     if (result == CURLE_OK){
         // wait
-        int maxj = 1;
-        if (dir == CAM_CENTER) maxj=100; //wait more!
-        for(int j=0;j<maxj;j++)
-            for(long int i=0; i<MOVE_DELAY*degree*maxj;i++);
+//        int maxj = 1;
+//        if (dir == CAM_CENTER) maxj=100; //wait more!
+//        for(int j=0;j<maxj;j++)
+//            for(long int i=0; i<MOVE_DELAY*degree*maxj;i++);
 
+        curl_easy_cleanup(curl);
         updateCoordinates(dir,degree);
         return true;
     }
+    curl_easy_cleanup(curl);
     return false;
-
-
 }
 
 // Like move, but with a given degree.

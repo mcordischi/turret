@@ -1,4 +1,5 @@
 #include "CameraControl.h"
+#include "MovingAlgorithm.h"
 #include <iostream>
 
 int main(){
@@ -6,10 +7,20 @@ int main(){
     control = new CameraControl("http://192.168.1.200","admin","31415LAS");
 
 
-    for(long int i=0;i<100000;i++);
+  //  for(long int i=0;i<100000;i++);
 
-    bool result = control->move(CAM_UP,40);
+    MovingAlgorithm* move = new MovingAlgorithm(control);
 
-    std::cout << result;
+
+    for( int i =0 ; i<10;i++){
+        for(long int j= 0; j<9999999;j++)
+            float fd = j*32.2;
+        move->getNextFrame();
+        std::cout<< "PUM!\n";
+    }
+
+//    bool result = control->move(CAM_UP,40);
+
+//    std::cout << result;
 }
 

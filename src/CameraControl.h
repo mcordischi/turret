@@ -31,7 +31,6 @@ typedef struct{
     int y;
 }Coordinates_t;
 
-#endif
 
 
 class CameraControl {
@@ -39,7 +38,9 @@ class CameraControl {
 private:
 //  alarmComand* ac;
     char* cameraURL;
-    CURL *curl;
+    char* user;
+    char* pwd;
+//    CURL *curl;
     Coordinates_t coordinates;
     cv::VideoCapture* cvCamera;
 
@@ -72,3 +73,6 @@ public:
     bool checkMovement(int dir, int degree);
 
 };
+
+
+#endif
