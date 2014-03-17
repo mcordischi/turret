@@ -13,8 +13,8 @@ int main(){
 
 
     for( int i =0 ; i<10;i++){
-        for(long int j= 0; j<9999999;j++)
-            float fd = j*32.2;
+        for(long long int j= 0; j<999999;j++)
+            float fd = i*32.2;
         move->getNextFrame();
         std::cout<< "PUM!\n";
     }
