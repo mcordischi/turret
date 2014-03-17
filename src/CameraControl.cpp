@@ -57,9 +57,9 @@ bool CameraControl::move(int dir, int degree){
 
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
     CURLcode result = curl_easy_perform(curl);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     if (result == CURLE_OK){
         // wait
 //        int maxj = 1;

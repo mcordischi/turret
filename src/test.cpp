@@ -1,6 +1,7 @@
 #include "CameraControl.h"
 #include "MovingAlgorithm.h"
 #include <iostream>
+#include <unistd.h>
 
 int main(){
     CameraControl* control;
@@ -13,8 +14,7 @@ int main(){
 
 
     for( int i =0 ; i<10;i++){
-        for(long long int j= 0; j<999999;j++)
-            float fd = i*32.2;
+        usleep(2000000);
         move->getNextFrame();
         std::cout<< "PUM!\n";
     }
