@@ -8,7 +8,8 @@ CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char
     this->cameraURL = url;
     this->user = user;
     this->pwd = pwd;
-
+}
+/*
     CURL* curl;
     //Connect to camera
     curl = curl_easy_init();
@@ -31,7 +32,7 @@ CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char
    curl_easy_cleanup(curl);
 
 }
-
+*/
 
 
 
@@ -49,6 +50,11 @@ bool CameraControl::move(int dir, int degree){
 
     CURL* curl;
     curl = curl_easy_init();
+    if(!curl){
+        std::cout << "No curl";
+        std::exit(1);
+    }
+
 
     char auxURL[100];
     sprintf((char*)&auxURL, "%s:%s",user,pwd);
@@ -125,9 +131,14 @@ Coordinates_t CameraControl::getCoordinates(){
 
     //Returns the lastest frame obtained from the camera
 cv::Mat* CameraControl::getFrame(){
+    //TODO retrieve a frame from snapshot.cgi
+
     cv::Mat* frame;
+    return frame;
+    /*
     (*cvCamera) >> (*frame);
     return frame;
+    */
 }
 
 //Triggers the alarm
