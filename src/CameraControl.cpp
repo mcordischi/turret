@@ -131,14 +131,33 @@ Coordinates_t CameraControl::getCoordinates(){
 
     //Returns the lastest frame obtained from the camera
 cv::Mat* CameraControl::getFrame(){
-    //TODO retrieve a frame from snapshot.cgi
+    //Stablish Connection
+    CURL* connection;
+    CURLcode connection_result;
+    //Curl response is saved in a file
+    FILE* imageFile;
+    void* charImage = malloc(sizeof(char) * 320000);
 
-    cv::Mat* frame;
-    return frame;
-    /*
-    (*cvCamera) >> (*frame);
-    return frame;
-    */
+    connection = curl_easy_init();
+    if (connection){
+        imageFile = fopen("img.jpg", "wb");
+        if (imageFile == NULL){ std::cout << "File handling error"; }
+
+
+        curl_easy_setopt(connection, CURLOPT_URL, "http://192.168.1.200/snapshot.cgi?user=admin&pwd=31415LAS");
+        //MUst create a writefunction to imporve performance and avoid file handilng
+        curl_easy_setopt(connection, CURLOPT_WRITEFUNCTION, NULL);
+        curl_easy_setopt(connection, CURLOPT_WRITEDATA, imageFile);
+
+        connection_result = curl_easy_perform(connection);
+        if( connection_result )
+            std::cout << "Error perform";
+        curl_easy_cleanup(connection);
+
+        fclose(imageFile);
+        //Read image from file
+        cv::Mat* image = new cv::Mat(cv::imread("img.jpg",1 ));
+        return image;
 }
 
 //Triggers the alarm
