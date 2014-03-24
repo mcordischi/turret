@@ -4,21 +4,21 @@
 #include "curl/curl.h"
 //#include "AlarmTriggerer.h"
 
-#ifndef __CONTROL_H_
-#define __CONTROL_H_
+#ifndef __CAM_CONTROL_H_
+#define __CAM_CONTROL_H_
 
 #define CAM_UP 0
 #define CAM_DW 2
-#define CAM_LF 4
-#define CAM_RH 6
+#define CAM_LF 6
+#define CAM_RH 4
 
 #define CAM_CENTER 25
 
 #define STEP_DEGREE 10 //CHECK
 
 #define MAX_UP 60
-#define MAX_DW 60
-#define MAX_LF 150
+#define MAX_DW -60
+#define MAX_LF -150
 #define MAX_RH 150
 
 #define MOVE_DELAY 100000
@@ -41,6 +41,7 @@ private:
     char* user;
     char* pwd;
 //    CURL *curl;
+    bool isCoordinates;
     Coordinates_t coordinates;
     cv::VideoCapture* cvCamera;
 
@@ -54,11 +55,15 @@ public:
     //Moves the camera in a specific direction and stops
     bool move(int direction, int degree);
 
+
     //Moves the camera in a specific direction, only one step
-    bool moveStep(int direction);
+    bool moveStep(int dir);
 
     //Moves the camera to a position
     bool move(Coordinates_t);
+
+    //Sets the camera in the centre position and enables the coordinates mode
+    bool startCoordinates();
 
     //Return the X and Y position of the camera
     Coordinates_t getCoordinates();
@@ -75,4 +80,4 @@ public:
 };
 
 
-#endif
+#endif // __CAM_CONTROL_H_

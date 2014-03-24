@@ -1,6 +1,12 @@
 #include "CameraControl.h"
 #include <iostream>
 #include <cstdlib>
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/opencv.hpp"
+#include "curl/curl.h"
+//#include "AlarmTriggerer.h"
+
 
 
 CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char* pwd){
@@ -35,12 +41,19 @@ CameraControl::CameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char
 */
 
 
+bool CameraControl::startCoordinates(){
+    moveStep(CAM_CENTER);
+    isCoordinates = true;
+    coordinates.x = 0;
+    coordinates.y = 0;
+}
+
 
     //Moves the camera in a specific direction and stops
 bool CameraControl::move(int dir, int degree){
 
     if (!checkMovement(dir,degree)){
-        std::cout << "Movement denied - Cannot move that direction anymore";
+        std::cout << "Movement denied - dir:" << dir << " degree:" << degree << "\n";
         return false;
     }
 
@@ -81,7 +94,7 @@ bool CameraControl::move(int dir, int degree){
     return false;
 }
 
-// Like move, but with a given degree.
+// Like move, but with a default degree.
 // Comment: the onestep parameter without degree moves the camera approx. 10 degree,
 // now the step is setted by software (not the camera) and uses the degree param.
 bool CameraControl::moveStep(int dir){
@@ -90,18 +103,21 @@ bool CameraControl::moveStep(int dir){
 
 //Checks wheter the movement is possible considering the angle
 bool CameraControl::checkMovement(int dir, int degree){
-    switch(dir){
-        case CAM_UP: return ((coordinates.y+degree) <= MAX_UP);
-        case CAM_DW: return ((coordinates.y-degree) >= MAX_DW);
-        case CAM_RH: return ((coordinates.x+degree) <= MAX_RH);
-        case CAM_LF: return ((coordinates.x-degree) >= MAX_LF);
-        case CAM_CENTER: return true;
-        default: std::cout << "Warning, strange command";
+    if(isCoordinates)
+        switch(dir){
+            case CAM_UP: return ((coordinates.y+degree) <= MAX_UP);
+            case CAM_DW: return ((coordinates.y-degree) >= MAX_DW);
+            case CAM_RH: return ((coordinates.x+degree) <= MAX_RH);
+            case CAM_LF: return ((coordinates.x-degree) >= MAX_LF);
+            case CAM_CENTER: return true;
+            default: std::cout << "Warning, strange command";
         }
     return true;
 }
 
 void CameraControl::updateCoordinates(int dir, int degree){
+    //Only work is coordinate work is activated
+    if(isCoordinates)
         switch(dir){
             case CAM_UP: coordinates.y += degree;
                          break;
@@ -120,7 +136,10 @@ void CameraControl::updateCoordinates(int dir, int degree){
 
     //Moves the camera to a position
 bool CameraControl::move(Coordinates_t coord){
-    //TODO
+    int x = coord.x - coordinates.x;
+        if(x>0) move(x,CAM_LF);
+         else   move(x,CAM_RH);
+
     return FAILURE;
 }
 
@@ -140,12 +159,16 @@ cv::Mat* CameraControl::getFrame(){
 
     connection = curl_easy_init();
     if (connection){
-        imageFile = fopen("img.jpg", "wb");
+        imageFile = fopen(".temp_img.jpg", "wb");
         if (imageFile == NULL){ std::cout << "File handling error"; }
 
+        char url[75];
+        sprintf((char*)&url, "%s/snapshot.cgi?user=%s&pwd=%s",cameraURL, user, pwd);
+        curl_easy_setopt(connection, CURLOPT_URL, url);
 
-        curl_easy_setopt(connection, CURLOPT_URL, "http://192.168.1.200/snapshot.cgi?user=admin&pwd=31415LAS");
-        //MUst create a writefunction to imporve performance and avoid file handilng
+
+//        curl_easy_setopt(connection, CURLOPT_URL, "http://192.168.1.200/snapshot.cgi?user=admin&pwd=31415LAS");
+        //MUst create a writefunction to improve performance and avoid file handilng
         curl_easy_setopt(connection, CURLOPT_WRITEFUNCTION, NULL);
         curl_easy_setopt(connection, CURLOPT_WRITEDATA, imageFile);
 
@@ -156,8 +179,10 @@ cv::Mat* CameraControl::getFrame(){
 
         fclose(imageFile);
         //Read image from file
-        cv::Mat* image = new cv::Mat(cv::imread("img.jpg",1 ));
+        cv::Mat* image = new cv::Mat(cv::imread(".temp_img.jpg",1 ));
         return image;
+    }
+    return NULL;
 }
 
 //Triggers the alarm

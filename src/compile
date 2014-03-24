@@ -1,1 +1,1 @@
-g++ *.cpp *.h `pkg-config --libs --cflags opencv  --cflags libcurl` -ldl -lm -lglib-2.0 -o test
+g++ CameraControl.h CameraControl.cpp utils.h utils.cpp main.cpp `pkg-config --libs --cflags opencv  --cflags libcurl` -ldl -lm -lglib-2.0 -o test
