@@ -8,6 +8,7 @@
 #include "opencv2/opencv.hpp"
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
@@ -17,19 +18,19 @@ int main(int argc, char* argv[]){
                   << "               -t [-i iterations] [-p outputImagePath] [--display]\n  ";
     }
 
-    char* url = "192.168.1.200";
+    char* url = "http://192.168.1.200";
     char* user = "admin";
     char* pwd = "31415LAS";
-
+/*
     int configParams = 0;
     // Read from config file
     ifstream configFile;
     string input;
-    configFile.open(config.txt);
+    configFile.open("config.txt");
     while(!configFile.eof()){
         configFile >> input;
-
-        if((int pos = input.find(=)) != string::npos ){
+        int pos = input.find("=");
+        if( pos != string::npos ){
             string param = input.substr(0,pos-1);
             param.erase( key.find_last_not_of( " \f\t\v" ) + 1 );
 
@@ -51,13 +52,13 @@ int main(int argc, char* argv[]){
     if (configParams < REQUIRED_PARAMS){
         cout << "Error: Missing parameters in config file";
     }
-
+*/
     CameraControl* controller= new CameraControl(url,user,pwd);
 
     bool test = false;
     if (strcmp(argv[1], "-t") == 0)  test= true;
 
-    for (int i  = 0 ; i< argc; i++) cout << i << " " << argv[i] << endl;
+//    for (int i  = 0 ; i< argc; i++) cout << i << " " << argv[i] << endl;
 
 
     if (!test){
@@ -81,14 +82,12 @@ int main(int argc, char* argv[]){
         for(int args = 2; args<argc; args++){
             if (strcmp(argv[args], "-i" ) == 0){
                 args++;
-                cout << "Number of iterations: "<<  argv[args] << "\n";
-                iterations = (int) *argv[args];
+                iterations = atoi(argv[args]);
             } else {
                 if(strcmp(argv[args], "-p") == 0){
                     args++;
                     outputPath = argv[args];
-                    cout << "output Path: " << argv[args]  << "\n";
-                } else {
+                       } else {
                 if(strcmp(argv[args], "--display") == 0 ){
                     display = true;
                 }
@@ -96,6 +95,11 @@ int main(int argc, char* argv[]){
                 }
             }
         }
+
+        cout << "Number of iterations: "<<  iterations << "\n";
+        cout << "output Path: " << outputPath  << "\n";
+
+
             cout << "Starting test...\n" ;
                testPrecision(controller,outputPath,iterations,display);
     }

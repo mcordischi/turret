@@ -7,7 +7,7 @@ void testPrecision(CameraControl* controller, char* path, int iterations, bool d
      cv::Mat* initialImage = controller->getFrame();
 
     for(int i=0;i<iterations;i++){
-        if (i%10 == 0) cout << "Iteration " << i << ".\n" ;
+        if (i%10 == 0) std::cout << "Iteration " << i << ".\n" ;
         int yMove= (i%4 +1) * 10; //MAX = 40
         int xMove= (i%6 +1)* 20;  //MAX = 120
 //        std::cout << "UP :" << yMove;
@@ -37,14 +37,15 @@ void testPrecision(CameraControl* controller, char* path, int iterations, bool d
      }
 
     //Save images
-    char auxURL[100];
-    sprintf((char*)&auxURL,"%s%i_precision_test_0.jpg",path,iterations);
+    char auxURL1[100];
+    sprintf((char*)&auxURL1,"%s/%i_precision_test_0.jpg",path,iterations);
 
-     cv::imwrite(auxURL,*initialImage);
+     cv::imwrite(auxURL1,*initialImage);
 
-    sprintf((char*)&auxURL,"%s/%i_precision_test_1.jpg",path,iterations);
+     char auxURL2[100];
+    sprintf((char*)&auxURL2,"%s/%i_precision_test_1.jpg",path,iterations);
 
-     cv::imwrite(auxURL,*finalImage);
+     cv::imwrite(auxURL2,*finalImage);
 
      cv::waitKey(0);
 

@@ -18,7 +18,7 @@ main.o: CameraControl.h MovingAlgorithm.h SearchingAlgorithm.h utils.h testPreci
 MovingAlgorithm.o: MovingAlgorithm.h CameraControl.h
 	$(CC) -c $(CFLAGS) MovingAlgorithm.cpp -o $(OBJ)$@
 
-SearchingAlgorithm.o: SearchingAlgorithm.h MovingAlgorithm.h CameraControl.h
+SearchingAlgorithm.o: SearchingAlgorithm.h MovingAlgorithm.h CameraControl.h utils.h
 	$(CC) -c $(CFLAGS) SearchingAlgorithm.cpp -o $(OBJ)$@
 
 testPrecision.o: testPrecision.h CameraControl.h utils.h

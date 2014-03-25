@@ -8,7 +8,7 @@ MovingAlgorithm::MovingAlgorithm(CameraControl* controller){
 
 cv::Mat*  MovingAlgorithm::getNextFrame(){
 
-    cv::Mat* result = new cv::Mat(); // controller->getFrame();
+    cv::Mat* result = controller->getFrame();
 
     int direction;
     switch(state){

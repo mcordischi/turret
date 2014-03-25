@@ -1,4 +1,5 @@
 #include "SearchingAlgorithm.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -21,8 +22,13 @@ SearchingAlgorithm::SearchingAlgorithm(MovingAlgorithm* move,CameraControl* cont
 
 bool SearchingAlgorithm::identifyItem(char* picPath){
 
+    //startCoordinates
+    control->startCoordinates();
+    wait(60);
+
+
     Mat mTarget = imread( picPath, CV_LOAD_IMAGE_GRAYSCALE );
-    if (! mTarget.data){ cout << "Error: no picture" ; return false;}
+    if (! mTarget.data){ std::cout << "Error: no picture" ; return false;}
 
     //Detect the keypoints using SURF Detector
     int minHessian = 500;
@@ -54,18 +60,21 @@ bool SearchingAlgorithm::identifyItem(char* picPath){
 
     char key = 'a';
     int framecount = 0;
-    while (key != 27)
+    bool found = false;
+    while (!found)
     {
-        Mat frame;
-        frame= *(move->getNextFrame());
+        Mat* frame;
+        frame= move->getNextFrame();
+        if(! frame->data) { std::cout << "Null frame\n" ; continue;}
 //        cap >> frame;
 
+/*      //Drop frames
         if (framecount < 5)
         {
             framecount++;
             continue;
         }
-
+*/
         Mat des_image, img_matches;
         std::vector<KeyPoint> kpImage;
         std::vector<vector<DMatch > > matches;
@@ -76,7 +85,7 @@ bool SearchingAlgorithm::identifyItem(char* picPath){
         Mat H;
         Mat image;
 
-        cvtColor(frame, image, CV_RGB2GRAY);
+        cvtColor(*frame, image, CV_RGB2GRAY);
 
         detector.detect( image, kpImage );
         extractor.compute( image, kpImage, des_image );
@@ -94,8 +103,12 @@ bool SearchingAlgorithm::identifyItem(char* picPath){
         //Draw only "good" matches
         drawMatches( mTarget, kpTarget, image, kpImage, good_matches, img_matches, Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
 
-        if (good_matches.size() >= 4)
+        if (good_matches.size() >= MIN_GOOD_MATCHES)
         {
+
+            //Stop camera from moving
+            control->stop();
+
             for( int i = 0; i < good_matches.size(); i++ )
             {
                 //Get the keypoints from the good matches
@@ -112,12 +125,17 @@ bool SearchingAlgorithm::identifyItem(char* picPath){
             line( img_matches, scene_corners[1] + Point2f( mTarget.cols, 0), scene_corners[2] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
             line( img_matches, scene_corners[2] + Point2f( mTarget.cols, 0), scene_corners[3] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
             line( img_matches, scene_corners[3] + Point2f( mTarget.cols, 0), scene_corners[0] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
+
+
+            std::cout<<"**MATCH FOUND***\nDisplaying match, if you want to continue searching, press 'c'";
+
+           //Show detected matches
+            imshow( "Capture", img_matches );
+
+            key = waitKey(0);
+            if (key != 99 ) // 'c' : continue looking
+                found = true;
         }
-
-        //Show detected matches
-        imshow( "Capture", img_matches );
-
-        key = waitKey(1);
     }
     return true;
 

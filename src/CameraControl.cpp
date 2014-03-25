@@ -1,6 +1,7 @@
 #include "CameraControl.h"
 #include <iostream>
 #include <cstdlib>
+#include <fstream>
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/opencv.hpp"
@@ -77,6 +78,11 @@ bool CameraControl::move(int dir, int degree){
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+
+    //Testing no stdout
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION, NULL);
+//    curl_easy_setopt(connection, CURLOPT_WRITEDATA, imageFile);
+
 
     CURLcode result = curl_easy_perform(curl);
     if (result == CURLE_OK){
@@ -159,7 +165,7 @@ cv::Mat* CameraControl::getFrame(){
 
     connection = curl_easy_init();
     if (connection){
-        imageFile = fopen(".temp_img.jpg", "wb");
+        imageFile = fopen("img.jpg", "wb");
         if (imageFile == NULL){ std::cout << "File handling error"; }
 
         char url[75];
@@ -175,14 +181,15 @@ cv::Mat* CameraControl::getFrame(){
         connection_result = curl_easy_perform(connection);
         if( connection_result )
             std::cout << "Error perform";
-        curl_easy_cleanup(connection);
 
+        curl_easy_cleanup(connection);
         fclose(imageFile);
+
         //Read image from file
-        cv::Mat* image = new cv::Mat(cv::imread(".temp_img.jpg",1 ));
+        cv::Mat* image = new cv::Mat(cv::imread("img.jpg",1 ));
         return image;
     }
-    return NULL;
+    return new cv::Mat();
 }
 
 //Triggers the alarm
@@ -192,3 +199,7 @@ bool CameraControl::triggerAlarm(){
     }
 
 
+//Stops movement
+bool CameraControl::stop(){
+    return (this->move(CAM_STOP,0));
+}

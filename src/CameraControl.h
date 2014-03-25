@@ -13,6 +13,7 @@
 #define CAM_DW 2
 #define CAM_LF 6
 #define CAM_RH 4
+#define CAM_STOP 1
 #define CAM_CENTER 25
 
 //Movement Constants
@@ -62,6 +63,9 @@ public:
 
     //Moves the camera to a position
     bool move(Coordinates_t);
+
+    //Stops movement
+    bool stop();
 
     //Sets the camera in the centre position and enables the coordinates mode
     bool startCoordinates();
