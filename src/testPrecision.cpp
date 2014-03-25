@@ -7,18 +7,19 @@ void testPrecision(CameraControl* controller, char* path, int iterations, bool d
      cv::Mat* initialImage = controller->getFrame();
 
     for(int i=0;i<iterations;i++){
+        if (i%10 == 0) cout << "Iteration " << i << ".\n" ;
         int yMove= (i%4 +1) * 10; //MAX = 40
         int xMove= (i%6 +1)* 20;  //MAX = 120
-        std::cout << "UP :" << yMove;
+//        std::cout << "UP :" << yMove;
         controller->move(CAM_UP,yMove);
         wait(yMove/5);
-         std::cout << "RH:" << xMove;
+//         std::cout << "RH:" << xMove;
         controller->move(CAM_RH,xMove);
         wait(xMove/10);
-        std::cout << "DW:";
+//        std::cout << "DW:";
         controller->move(CAM_DW,yMove);
         wait(yMove/5);
-        std::cout << "LF:";
+//        std::cout << "LF:";
         controller->move(CAM_LF,xMove);
         wait(xMove/10);
     }

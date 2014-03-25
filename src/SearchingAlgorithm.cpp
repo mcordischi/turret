@@ -22,6 +22,7 @@ SearchingAlgorithm::SearchingAlgorithm(MovingAlgorithm* move,CameraControl* cont
 bool SearchingAlgorithm::identifyItem(char* picPath){
 
     Mat mTarget = imread( picPath, CV_LOAD_IMAGE_GRAYSCALE );
+    if (! mTarget.data){ cout << "Error: no picture" ; return false;}
 
     //Detect the keypoints using SURF Detector
     int minHessian = 500;
@@ -39,8 +40,7 @@ bool SearchingAlgorithm::identifyItem(char* picPath){
 
     FlannBasedMatcher matcher;
 
-    //VideoCapture cap("http://192.168.1.200/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
-	VideoCapture cap("http://nidq.no-ip.org/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
+//	VideoCapture cap("http://nidq.no-ip.org/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
 
     namedWindow("Capture");
 
