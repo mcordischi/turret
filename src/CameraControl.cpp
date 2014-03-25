@@ -116,6 +116,7 @@ bool CameraControl::checkMovement(int dir, int degree){
             case CAM_RH: return ((coordinates.x+degree) <= MAX_RH);
             case CAM_LF: return ((coordinates.x-degree) >= MAX_LF);
             case CAM_CENTER: return true;
+            case CAM_STOP: return true;
             default: std::cout << "Warning, strange command";
         }
     return true;

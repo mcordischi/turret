@@ -9,6 +9,8 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
+#include <fstream>
+
 
 using namespace std;
 
@@ -21,38 +23,32 @@ int main(int argc, char* argv[]){
     char* url = "http://192.168.1.200";
     char* user = "admin";
     char* pwd = "31415LAS";
-/*
+
     int configParams = 0;
     // Read from config file
-    ifstream configFile;
-    string input;
-    configFile.open("config.txt");
-    while(!configFile.eof()){
-        configFile >> input;
-        int pos = input.find("=");
-        if( pos != string::npos ){
-            string param = input.substr(0,pos-1);
-            param.erase( key.find_last_not_of( " \f\t\v" ) + 1 );
-
-            string value = input.substr(pos+1,input.size());
-            value.erase( key.find_last_not_of( " \f\t\v" ) + 1 );
-
-            switch(param){
-                case "url" : url = value; configParams++;
-                         break;
-                case "user": user = value;configParams++;
-                         break;
-                case "pwd" : pwd = value;configParams++;
-                        break;
-                default:  cout << "Warning: No allowed value in config.txt file";
-            }
-        }
+    ifstream configFile("config.txt");
+    if(!configFile.is_open()){
+        cout << "ERROR, No config.txt!";
+        exit(EXIT_FAILURE);
     }
+
+    while(!configFile.eof()){
+        //TODO
+        configParams = REQUIRED_PARAMS;
+     }
+
+    configFile.close();
 
     if (configParams < REQUIRED_PARAMS){
         cout << "Error: Missing parameters in config file";
+        exit(EXIT_FAILURE);
     }
-*/
+
+    cout << "--CAMERA INFO (from config.txt)--\n";
+    cout << "URL: " << url << "\n";
+    cout << "user: " << user<< "\n";
+    cout << "pwd: " << pwd << "\n";
+
     CameraControl* controller= new CameraControl(url,user,pwd);
 
     bool test = false;
