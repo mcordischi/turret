@@ -7,7 +7,7 @@
 **/
 class AbstractDetector{
     public:
-        virtua bool identifyItem(char* picPath) = 0;
+        virtual bool identifyItem(char* picPath) = 0;
 };
 
 #endif // __ABS_DETECTOR_H_

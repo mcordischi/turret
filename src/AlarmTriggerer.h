@@ -1,6 +1,6 @@
-#ifndef __ALARM_COMMAND__
-#define __ALARM_COMMAND__
+#ifndef __ALARM_COMMAND_H_
+#define __ALARM_COMMAND_H_
 
 //(char*) (*alarmCommand) ();
 
-#endif
+#endif // __ALARM_COMMAND_H_

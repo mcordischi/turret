@@ -1,4 +1,5 @@
 #include "AbstractCameraControl.h"
+#include "FoscamCameraControl.h" //Using constants
 #include "utils.h"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"

@@ -4,6 +4,10 @@
 #include "curl/curl.h"
 #include "utils.h"
 
+#ifndef __ABS_CAM_CONTROL_H_
+#define __ABS_CAM_CONTROL_H_
+
+
 /**
 * Camera Control Interface
 **/
@@ -40,3 +44,7 @@ public:
     virtual bool checkMovement(int dir, int degree) = 0;
 
 };
+
+
+#endif //__ABS_CAM_CONTROL_H_
+

@@ -1,5 +1,8 @@
 #include "opencv2/core/core.hpp"
 
+#ifndef __ABS_TRACKER_H_
+#define __ABS_TRACKER_H_
+
 class AbstractTracker {
 
     public:
@@ -8,3 +11,5 @@ class AbstractTracker {
         virtual cv::Mat* getNextFrame() = 0;
 
 };
+
+#endif //__ABS_TRACKER_H_
