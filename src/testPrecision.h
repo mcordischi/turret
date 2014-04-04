@@ -1,4 +1,4 @@
-#include "CameraControl.h"
+#include "AbstractCameraControl.h"
 #include "utils.h"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -10,6 +10,6 @@
 #define __TEST_PRECISION_H_
 
 //Test the camerma precision moving it for a while
-void testPrecision(CameraControl* controller, char* path, int iterations,bool display);
+void testPrecision(AbstractCameraControl* controller, char* path, int iterations,bool display);
 
 #endif //__TEST_PRECISION_H_

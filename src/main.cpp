@@ -1,6 +1,6 @@
-#include "CameraControl.h"
-#include "MovingAlgorithm.h"
-#include "SearchingAlgorithm.h"
+#include "AbstractCameraControl.h"
+#include "AbstractTracker.h"
+#include "AbstractDetector.h"
 #include "utils.h"
 #include "testPrecision.h"
 #include "opencv2/core/core.hpp"
@@ -10,6 +10,10 @@
 #include <cstring>
 #include <cstdlib>
 #include <fstream>
+
+#include "FoscamCameraControl.h"
+#include "HorizontalTracker.h"
+#include "OpenCVDetector.h"
 
 
 using namespace std;
@@ -49,7 +53,7 @@ int main(int argc, char* argv[]){
     cout << "user: " << user<< "\n";
     cout << "pwd: " << pwd << "\n";
 
-    CameraControl* controller= new CameraControl(url,user,pwd);
+    AbstractCameraControl* controller= new FoscamCameraControl(url,user,pwd);
 
     bool test = false;
     if (strcmp(argv[1], "-t") == 0)  test= true;
@@ -62,10 +66,10 @@ int main(int argc, char* argv[]){
         char* picPath= argv[1];
 
 
-        MovingAlgorithm* mover = new MovingAlgorithm(controller);
-        SearchingAlgorithm* searcher= new SearchingAlgorithm(mover,controller);
+        AbstractTracker* tracker = new HorizontalTracker(controller);
+        AbstractDetector* detector= new OpenCVDetector(tracker,controller);
 
-        searcher->identifyItem(picPath);
+        detector->identifyItem(picPath);
 
     }
     else{

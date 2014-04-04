@@ -1,6 +1,6 @@
 #include "testPrecision.h"
 
-void testPrecision(CameraControl* controller, char* path, int iterations, bool display){
+void testPrecision(AbstractCameraControl* controller, char* path, int iterations, bool display){
 
      controller->startCoordinates();
      wait(60);
