@@ -36,10 +36,28 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);
     }
 
-    while(!configFile.eof()){
-        //TODO
-        configParams = REQUIRED_PARAMS;
-     }
+    std::string line;
+	while( std::getline(configFile, line) )
+	{
+	  std::istringstream is_line(line);
+	  std::string key;
+	  if( std::getline(is_line, key, '=') )
+	  {
+		std::string value;
+		if( std::getline(is_line, value) ) 
+		{
+			char * cval = (char*)malloc((str.length() + 1) * sizeof(char));
+			strcpy(cval, value.c_str());
+			if(strcmp(key.c_str(), "url") == 0)
+				url=cval;
+			else if(strcmp(key.c_str(), "user") == 0)
+				user=cval;
+			else if(strcmp(key.c_str(), "pwd") == 0)
+				pwd=cval;
+		}
+		configParams++;
+	  }
+	}
 
     configFile.close();
 
