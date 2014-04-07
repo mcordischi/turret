@@ -1,5 +1,0 @@
-Just run make (and pray)!
-
-If you are trying to port it, to a not *nix OS, just edit the utils (uses unistd.h)
-
-If you want to use a camera with a API different from FOSCAM, you must edit some strings in the CameraControl.cpp file

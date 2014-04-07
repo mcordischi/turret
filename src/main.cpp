@@ -22,11 +22,12 @@ int main(int argc, char* argv[]){
     if(argc < 2 ){
         std::cout << "Usage: tracker <target image>\n"
                   << "               -t [-i iterations] [-p outputImagePath] [--display]\n  ";
+        exit(EXIT_FAILURE);
     }
 
-    char* url = "http://192.168.1.200";
-    char* user = "admin";
-    char* pwd = "31415LAS";
+    char* url;// = "http://192.168.1.200";
+    char* user;// = "admin";
+    char* pwd;// = "31415LAS";
 
     int configParams = 0;
     // Read from config file
@@ -46,7 +47,7 @@ int main(int argc, char* argv[]){
 		std::string value;
 		if( std::getline(is_line, value) ) 
 		{
-			char * cval = (char*)malloc((str.length() + 1) * sizeof(char));
+			char * cval = (char*)malloc((value.length() + 1) * sizeof(char));
 			strcpy(cval, value.c_str());
 			if(strcmp(key.c_str(), "url") == 0)
 				url=cval;
