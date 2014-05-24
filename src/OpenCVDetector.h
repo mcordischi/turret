@@ -6,16 +6,17 @@
 #define __OCV_DETECTOR_H_
 
 
-class OpenCVDetector : public AbstractDetector{
-    private:
-        AbstractTracker* move;
-        AbstractCameraControl* control;
+class  : public AbstractDetector{
 
     public:
 
         OpenCVDetector(AbstractTracker*,AbstractCameraControl*);
 
         bool identifyItem(char* picPath);
+        bool identifyItem(cv::Mat item);
+private:
+    AbstractTracker* move;
+    AbstractCameraControl* control;
 };
 
 

@@ -20,15 +20,19 @@ OpenCVDetector::OpenCVDetector(AbstractTracker* move,AbstractCameraControl* cont
 }
 
 
-bool OpenCVDetector::identifyItem(char* picPath){
-
-    //startCoordinates
-    control->startCoordinates();
-    wait(60);
-
+bool OpenCVDetector::identifyItem(char* picPath)
+{
 
     Mat mTarget = imread( picPath, CV_LOAD_IMAGE_GRAYSCALE );
     if (! mTarget.data){ std::cout << "Error: no picture" ; return false;}
+    return identifyMatItem(mTarget);
+}
+
+bool OpenCVDetector::identifyItem(cv::Mat mTarget)
+{
+    //startCoordinates
+    control->startCoordinates();
+    wait(60);
 
     //Detect the keypoints using SURF Detector
     int minHessian = 500;
@@ -45,8 +49,6 @@ bool OpenCVDetector::identifyItem(char* picPath){
     extractor.compute( mTarget, kpTarget, des_object );
 
     FlannBasedMatcher matcher;
-
-//	VideoCapture cap("http://nidq.no-ip.org/videostream.cgi?user=admin&pwd=31415LAS&resolution=32&dummy=.mjpg");
 
     namedWindow("Capture");
 
@@ -138,6 +140,5 @@ bool OpenCVDetector::identifyItem(char* picPath){
         }
     }
     return true;
-
 }
 
