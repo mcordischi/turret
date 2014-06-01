@@ -5,6 +5,7 @@
 #include "testPrecision.h"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/opencv.hpp"
 #include <iostream>
 #include <cstring>
@@ -17,10 +18,20 @@
 
 
 using namespace std;
+using namespace cv;
+
+Mat* src;
+vector<Mat> r;
+//int selectorExample( int, char**);
+void click_callback(int, int, int, int, void*);
+
+AbstractTracker* tracker;
+AbstractDetector* detector;
+AbstractCameraControl* controller;
 
 int main(int argc, char* argv[]){
-    if(argc < 2 ){
-        std::cout << "Usage: tracker <target image>\n"
+    if(argc < 1 ){
+        std::cout << "Usage: tracker \n"
                   << "               -t [-i iterations] [-p outputImagePath] [--display]\n  ";
         exit(EXIT_FAILURE);
     }
@@ -45,7 +56,7 @@ int main(int argc, char* argv[]){
 	  if( std::getline(is_line, key, '=') )
 	  {
 		std::string value;
-		if( std::getline(is_line, value) ) 
+		if( std::getline(is_line, value) )
 		{
 			char * cval = (char*)malloc((value.length() + 1) * sizeof(char));
 			strcpy(cval, value.c_str());
@@ -72,23 +83,38 @@ int main(int argc, char* argv[]){
     cout << "user: " << user<< "\n";
     cout << "pwd: " << pwd << "\n";
 
-    AbstractCameraControl* controller= new FoscamCameraControl(url,user,pwd);
+    controller= new FoscamCameraControl(url,user,pwd);
 
     bool test = false;
-    if (strcmp(argv[1], "-t") == 0)  test= true;
+    if (strcmp(argv[0], "-t") == 0)  test= true;
 
 //    for (int i  = 0 ; i< argc; i++) cout << i << " " << argv[i] << endl;
 
 
     if (!test){
         //normal program
-        char* picPath= argv[1];
+        //char* picPath= argv[1];
+
+        //startCoordinates
+        //controller->startCoordinates();
+        //wait(60);
 
 
-        AbstractTracker* tracker = new HorizontalTracker(controller);
-        AbstractDetector* detector= new OpenCVDetector(tracker,controller);
+        src = controller->getFrame();
+        /// Create Window
+        namedWindow( "Source", CV_WINDOW_AUTOSIZE );
+        imshow( "Source", *src );
+        setMouseCallback("Source", click_callback);
 
-        detector->identifyItem(picPath);
+        tracker = new HorizontalTracker(controller);
+        detector= new OpenCVDetector(tracker,controller);
+
+
+        char key;
+        do{
+            key = waitKey(0);
+        }while (key != 113 ); // 'q' : quit
+        return 0 ;
 
     }
     else{
@@ -126,5 +152,30 @@ int main(int argc, char* argv[]){
 
     return 0;
 
+}
+
+
+
+#include "ObjectSelector.h"
+
+void click_callback(int event, int x, int y, int, void*)
+{
+    if  ( event == EVENT_LBUTTONDOWN )
+    {
+        ObjectSelector sel(50);
+        r = sel.getObjects(src,Point2d(x,y));
+        namedWindow( "Target", CV_WINDOW_AUTOSIZE );
+        //namedWindow( "1", CV_WINDOW_AUTOSIZE );
+        //namedWindow( "2", CV_WINDOW_AUTOSIZE );
+        if(r.size()>0)
+            imshow( "Target", r[0] );
+        waitKey(0);
+   /*     if(r.size()>1)
+            imshow( "1", r[1] );
+        if(r.size()>2)
+            imshow( "2", r[2] );*/
+        cout << "Looking for r[0]" << endl;
+        detector->identifyItem(r[0]);
+    }
 }
 

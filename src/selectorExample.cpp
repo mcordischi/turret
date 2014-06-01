@@ -6,7 +6,9 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <QCoreApplication>
+//#include <QCoreApplication>
+#define TEST
+#ifndef TEST
 
 using namespace cv;
 using namespace std;
@@ -14,11 +16,10 @@ using namespace std;
 Mat * src;
 void click_callback(int, int, int, int, void*);
 
-/** @function main */
-int main( int, char**)
+int selectorExample( int, char**)
 {
 
-  AbstractCameraControl * cam = new FoscamCameraControl("bq5468.myfoscam.org:4037", "admin", "31415LAS");
+  AbstractCameraControl * cam = new FoscamCameraControl("192.168.1.200", "admin", "31415LAS");
   src = cam->getFrame();
 
   /// Create Window
@@ -29,8 +30,8 @@ int main( int, char**)
   waitKey(0);
   return(0);
 }
-
-#include "objectselector.h"
+/*
+#include "ObjectSelector.h"
 
 void click_callback(int event, int x, int y, int, void*)
 {
@@ -49,3 +50,5 @@ void click_callback(int event, int x, int y, int, void*)
             imshow( "2", r[2] );
     }
 }
+*/
+#endif

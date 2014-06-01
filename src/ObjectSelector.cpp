@@ -1,4 +1,4 @@
-#include "objectselector.h"
+#include "ObjectSelector.h"
 #include <limits>
 ObjectSelector::ObjectSelector(int thresh) : thresh(thresh), maxRet((unsigned)-1)
 {

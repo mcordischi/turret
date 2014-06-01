@@ -6,7 +6,7 @@
 #define __OCV_DETECTOR_H_
 
 
-class  : public AbstractDetector{
+class OpenCVDetector : public AbstractDetector{
 
     public:
 

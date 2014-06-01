@@ -12,7 +12,7 @@
 #include "opencv2/calib3d/calib3d.hpp"
 
 using namespace cv;
-
+using namespace std;
 
 OpenCVDetector::OpenCVDetector(AbstractTracker* move,AbstractCameraControl* control){
     this->move = move;
@@ -25,14 +25,14 @@ bool OpenCVDetector::identifyItem(char* picPath)
 
     Mat mTarget = imread( picPath, CV_LOAD_IMAGE_GRAYSCALE );
     if (! mTarget.data){ std::cout << "Error: no picture" ; return false;}
-    return identifyMatItem(mTarget);
+    return identifyItem(mTarget);
 }
 
 bool OpenCVDetector::identifyItem(cv::Mat mTarget)
 {
-    //startCoordinates
-    control->startCoordinates();
-    wait(60);
+    //startCoordinates -- Already in main
+   // control->startCoordinates();
+   // wait(60);
 
     //Detect the keypoints using SURF Detector
     int minHessian = 500;
@@ -50,7 +50,7 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
 
     FlannBasedMatcher matcher;
 
-    namedWindow("Capture");
+    //namedWindow("Capture");
 
     std::vector<Point2f> tgt_corners(4);
 
@@ -63,7 +63,10 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
     char key = 'a';
     int framecount = 0;
     bool found = false;
-    while (!found)
+    bool track = true;
+        namedWindow( "Source", CV_WINDOW_AUTOSIZE );
+
+    while (!found && track)
     {
         Mat* frame;
         frame= move->getNextFrame();
@@ -108,9 +111,12 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         if (good_matches.size() >= MIN_GOOD_MATCHES)
         {
 
+            cout << "ITEM FOUND!" ;
+
             //Stop camera from moving
             control->stop();
 
+            //@Deprecated
             for( int i = 0; i < good_matches.size(); i++ )
             {
                 //Get the keypoints from the good matches
@@ -129,16 +135,38 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
             line( img_matches, scene_corners[3] + Point2f( mTarget.cols, 0), scene_corners[0] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
 
 
-            std::cout<<"**MATCH FOUND***\nDisplaying match, if you want to continue searching, press 'c'";
+
+
+           // std::cout<<"**MATCH FOUND***\nDisplaying match, if you want to continue searching, press 'c'";
 
            //Show detected matches
-            imshow( "Capture", img_matches );
+            imshow( "Source", img_matches );
+            updateWindow("Source");
 
-            key = waitKey(0);
-            if (key != 99 ) // 'c' : continue looking
-                found = true;
+
+
+            //Get object's center position and move camera towards it
+            Coordinates_t mean ;
+            mean.x=0; mean.y = 0;
+            for ( int i = 0 ; i< 4 ; i++){
+                mean.x += (int)scene_corners[i].x;
+                mean.y +=(int) scene_corners[i].y;
+            }
+            mean.x /= 4;
+            mean.y /= 4;
+
+            cout << " - Starting tracking" << endl;
+            control->move(mean);
+            wait(1);
+
+            //key = waitKey(0);
+            //if (key != 99 ) // 'c' : continue looking
+            //    found = true;
+
+
         }
+        imshow("Source",*frame);
+        updateWindow("Source");
     }
     return true;
 }
-
