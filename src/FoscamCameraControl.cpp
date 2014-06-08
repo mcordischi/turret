@@ -15,6 +15,7 @@ FoscamCameraControl::FoscamCameraControl(/*AlarmTriggerer* at,*/ char* url, char
     this->cameraURL = url;
     this->user = user;
     this->pwd = pwd;
+    charImage = malloc(sizeof(char) * 320000);
 }
 /*  DEPRECATED: it is better to request a snapshot that start a streaming. Delete on next code review
 	// Start camera Streaming
@@ -163,7 +164,6 @@ cv::Mat* FoscamCameraControl::getFrame(){
     CURLcode connection_result;
     //Curl response is saved in a file
     FILE* imageFile;
-    void* charImage = malloc(sizeof(char) * 320000);
 
     connection = curl_easy_init();
     if (connection){

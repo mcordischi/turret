@@ -140,9 +140,10 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
            // std::cout<<"**MATCH FOUND***\nDisplaying match, if you want to continue searching, press 'c'";
 
            //Show detected matches
+            cout << "MATCH!" ;
             imshow( "Source", img_matches );
             updateWindow("Source");
-
+            waitKey(1);
 
 
             //Get object's center position and move camera towards it
@@ -167,6 +168,7 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         }
         imshow("Source",*frame);
         updateWindow("Source");
+        waitKey(1);
     }
     return true;
 }

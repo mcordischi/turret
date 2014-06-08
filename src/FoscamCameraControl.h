@@ -43,6 +43,7 @@ private:
     char* cameraURL;
     char* user;
     char* pwd;
+    void* charImage;
 //    CURL *curl;
     bool isCoordinates;
     Coordinates_t coordinates;

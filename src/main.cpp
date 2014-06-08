@@ -22,6 +22,7 @@ using namespace cv;
 
 Mat* src;
 vector<Mat> r;
+bool cont;
 //int selectorExample( int, char**);
 void click_callback(int, int, int, int, void*);
 
@@ -30,11 +31,21 @@ AbstractDetector* detector;
 AbstractCameraControl* controller;
 
 int main(int argc, char* argv[]){
-    if(argc < 1 ){
-        std::cout << "Usage: tracker \n"
-                  << "               -t [-i iterations] [-p outputImagePath] [--display]\n  ";
+    cont = false;
+
+    //Check Parameters
+    if(argc > 8 ){
+        std::cout << "Usage: tracker [image]\n"
+                  << "               [-t] [-i iterations] [-p outputImagePath] [--display]\n  ";
         exit(EXIT_FAILURE);
     }
+
+    bool test = false;
+    bool imageByParam = false;
+
+    for (int i =1 ; i< argc; i++)
+        if (strcmp(argv[1], "-t") == 0){  test= true; break;}
+    if (!test && argc > 1) imageByParam = true;
 
     char* url;// = "http://192.168.1.200";
     char* user;// = "admin";
@@ -84,38 +95,36 @@ int main(int argc, char* argv[]){
     cout << "pwd: " << pwd << "\n";
 
     controller= new FoscamCameraControl(url,user,pwd);
-
-    bool test = false;
-    if (strcmp(argv[0], "-t") == 0)  test= true;
-
-//    for (int i  = 0 ; i< argc; i++) cout << i << " " << argv[i] << endl;
-
-
+    cout << "Connected" << endl;
     if (!test){
         //normal program
-        //char* picPath= argv[1];
-
-        //startCoordinates
-        //controller->startCoordinates();
-        //wait(60);
-
-
-        src = controller->getFrame();
-        /// Create Window
-        namedWindow( "Source", CV_WINDOW_AUTOSIZE );
-        imshow( "Source", *src );
-        setMouseCallback("Source", click_callback);
-
         tracker = new HorizontalTracker(controller);
         detector= new OpenCVDetector(tracker,controller);
 
+        // Create Window
+        namedWindow( "Source", CV_WINDOW_AUTOSIZE );
 
-        char key;
-        do{
-            key = waitKey(0);
-        }while (key != 113 ); // 'q' : quit
-        return 0 ;
+        if(imageByParam){
+            cout << "Image by parameter";
+            char* picPath= argv[1];
+            detector->identifyItem(picPath);
+        } else{
+            cout << "Image by selection";
+            //startCoordinates
+            //controller->startCoordinates();
+            //wait(60);
 
+
+            src = controller->getFrame();
+            imshow( "Source", *src );
+            setMouseCallback("Source", click_callback);
+            do{
+                //wait(1);
+                waitKey(100);
+            }while (!cont); // 'q' : quit
+            detector->identifyItem(r[0]);
+        }
+        return 0;
     }
     else{
         //testPrecision program
@@ -169,13 +178,13 @@ void click_callback(int event, int x, int y, int, void*)
         //namedWindow( "2", CV_WINDOW_AUTOSIZE );
         if(r.size()>0)
             imshow( "Target", r[0] );
-        waitKey(0);
+        waitKey(1);
    /*     if(r.size()>1)
             imshow( "1", r[1] );
         if(r.size()>2)
             imshow( "2", r[2] );*/
         cout << "Looking for r[0]" << endl;
-        detector->identifyItem(r[0]);
+        cont = true;
     }
 }
 

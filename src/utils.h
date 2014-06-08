@@ -9,7 +9,7 @@
 
 //System constants
 #define REQUIRED_PARAMS 3   //config.txt parameters
-#define MIN_GOOD_MATCHES 10 //number of good matches to find object
+#define MIN_GOOD_MATCHES 1 //number of good matches to find object
 
 //Coordinates type, used in CameraControl
 typedef struct{
