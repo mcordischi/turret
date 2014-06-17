@@ -80,23 +80,23 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
             continue;
         }
 */
-        Mat des_image;
-        std::vector<KeyPoint> kpImage;
-        std::vector<vector<DMatch > > matches;
-        std::vector<DMatch > good_matches;
-        std::vector<Point2f> obj;
-        std::vector<Point2f> scene;
-        std::vector<Point2f> scene_corners(4);
-        Mat H;
-        Mat frameGray;
+        Mat des_frame;  // frame descriptor
+        std::vector<KeyPoint> kpFrame; // frame key points
+        std::vector<vector<DMatch > > matches; // matches between frame and target
+        std::vector<DMatch > good_matches; // subset of matches
+        std::vector<Point2f> obj; //target good matches
+        std::vector<Point2f> scene; // frame good matches
+        std::vector<Point2f> scene_corners(4); // frame corners
+        Mat H; // Homography
+        Mat frameGray; // frame with grayscale
         cvtColor(*frame, frameGray, CV_RGB2GRAY);
 
-        detector.detect( frameGray, kpImage );
-        extractor.compute( frameGray, kpImage, des_image );
+        detector.detect( frameGray, kpFrame );
+        extractor.compute( frameGray, kpFrame, des_frame );
 
-        matcher.knnMatch(des_object, des_image, matches, 2);
+        matcher.knnMatch(des_object, des_frame, matches, 2);
 
-        for(int i = 0; i < min(des_image.rows-1,(int) matches.size()); i++) //THIS LOOP IS SENSITIVE TO SEGFAULTS
+        for(int i = 0; i < min(des_frame.rows-1,(int) matches.size()); i++) //THIS LOOP IS SENSITIVE TO SEGFAULTS
         {
             if((matches[i][0].distance < 0.6*(matches[i][1].distance)) && ((int) matches[i].size()<=2 && (int) matches[i].size()>0))
             {
@@ -120,7 +120,7 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
             {
                 //Get the keypoints from the good matches
                 obj.push_back( kpTarget[ good_matches[i].queryIdx ].pt );
-                scene.push_back( kpImage[ good_matches[i].trainIdx ].pt );
+                scene.push_back( kpFrame[ good_matches[i].trainIdx ].pt );
             }
 
             H = findHomography( obj, scene, CV_RANSAC );

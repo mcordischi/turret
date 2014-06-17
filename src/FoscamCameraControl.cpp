@@ -45,7 +45,7 @@ FoscamCameraControl::FoscamCameraControl(/*AlarmTriggerer* at,*/ char* url, char
 
 
 bool FoscamCameraControl::startCoordinates(){
-    moveStep(CAM_CENTER);
+    move(CAM_CENTER,0);
     isCoordinates = true;
     coordinates.x = 0;
     coordinates.y = 0;
@@ -119,7 +119,7 @@ bool FoscamCameraControl::checkMovement(int dir, int degree){
             case CAM_LF: return ((coordinates.x-degree) >= MAX_LF);
             case CAM_CENTER: return true;
             case CAM_STOP: return true;
-            default: std::cout << "Warning, strange command";
+            default: std::cout << "Warning, strange command : DIR="<< dir << " DEG=" << degree  <<"\n";
         }
     return true;
 }
@@ -139,6 +139,7 @@ void FoscamCameraControl::updateCoordinates(int dir, int degree){
             case CAM_CENTER: coordinates.x = 0;
                              coordinates.y = 0;
                              break;
+            case CAM_STOP: return;
             default: std::cout << "Warning, strange command : DIR="<< dir << " DEG=" << degree  <<"\n";
         }
 }
@@ -147,11 +148,11 @@ void FoscamCameraControl::updateCoordinates(int dir, int degree){
 bool FoscamCameraControl::move(Coordinates_t coord){
     bool result = true;
     int x = coord.x - coordinates.x;
-        if(x>0) result &= move(CAM_LF,x);
-         else   result &= move(CAM_RH,x);
+        if(x>0) result &= move(CAM_RH,x);
+         else   result &= move(CAM_LF,x);
     int y = coord.y - coordinates.y;
-        if(y>0) result &= move(CAM_DW,y);
-         else  result &= move(CAM_UP,y);
+        if(y>0) result &= move(CAM_UP,y);
+         else  result &= move(CAM_DW,y);
     return result;
 }
 
@@ -161,6 +162,7 @@ bool FoscamCameraControl::moveRelative(Coordinates_t coord){
     Coordinates_t newC;
     newC.x = coord.x + coordinates.x;
     newC.y = coord.y + coordinates.y;
+    std::cout << "relToAbs: " << coord.x << "," << coord.y << ") -> (" << newC.x << "," << newC.y << ")\n" ;
     return move(newC);
 }
 
