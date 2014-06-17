@@ -139,18 +139,32 @@ void FoscamCameraControl::updateCoordinates(int dir, int degree){
             case CAM_CENTER: coordinates.x = 0;
                              coordinates.y = 0;
                              break;
-            default: std::cout << "Warning, strange command";
+            default: std::cout << "Warning, strange command : DIR="<< dir << " DEG=" << degree  <<"\n";
         }
 }
 
     //Moves the camera to a position
 bool FoscamCameraControl::move(Coordinates_t coord){
+    bool result = true;
     int x = coord.x - coordinates.x;
-        if(x>0) move(x,CAM_LF);
-         else   move(x,CAM_RH);
-
-    return FAILURE;
+        if(x>0) result &= move(CAM_LF,x);
+         else   result &= move(CAM_RH,x);
+    int y = coord.y - coordinates.y;
+        if(y>0) result &= move(CAM_DW,y);
+         else  result &= move(CAM_UP,y);
+    return result;
 }
+
+
+//Moves the camera to a position, asuming current camera center is (0,0)
+bool FoscamCameraControl::moveRelative(Coordinates_t coord){
+    Coordinates_t newC;
+    newC.x = coord.x + coordinates.x;
+    newC.y = coord.y + coordinates.y;
+    return move(newC);
+}
+
+
 
     //Return the X and Y position of the camera
 Coordinates_t FoscamCameraControl::getCoordinates(){

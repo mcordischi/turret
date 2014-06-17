@@ -25,6 +25,10 @@ public:
     //Moves the camera to a position
     virtual bool move(Coordinates_t) = 0;
 
+    //Moves the camera to a position, asuming current camera center is (0,0)
+    virtual bool moveRelative(Coordinates_t) = 0;
+
+
     //Stops movement
     virtual bool stop() = 0 ;
 

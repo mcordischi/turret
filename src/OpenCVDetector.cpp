@@ -80,7 +80,7 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
             continue;
         }
 */
-        Mat des_image, img_matches;
+        Mat des_image;
         std::vector<KeyPoint> kpImage;
         std::vector<vector<DMatch > > matches;
         std::vector<DMatch > good_matches;
@@ -88,12 +88,11 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         std::vector<Point2f> scene;
         std::vector<Point2f> scene_corners(4);
         Mat H;
-        Mat image;
+        Mat frameGray;
+        cvtColor(*frame, frameGray, CV_RGB2GRAY);
 
-        cvtColor(*frame, image, CV_RGB2GRAY);
-
-        detector.detect( image, kpImage );
-        extractor.compute( image, kpImage, des_image );
+        detector.detect( frameGray, kpImage );
+        extractor.compute( frameGray, kpImage, des_image );
 
         matcher.knnMatch(des_object, des_image, matches, 2);
 
@@ -104,10 +103,10 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
                 good_matches.push_back(matches[i][0]);
             }
         }
-
+/*
         //Draw only "good" matches
-        drawMatches( mTarget, kpTarget, image, kpImage, good_matches, img_matches, Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
-
+        drawMatches( mTarget, kpTarget, frameGray, kpImage, good_matches, img_matches, Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+*/
         if (good_matches.size() >= MIN_GOOD_MATCHES)
         {
 
@@ -127,12 +126,11 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
             H = findHomography( obj, scene, CV_RANSAC );
 
             perspectiveTransform( tgt_corners, scene_corners, H);
-
             //Draw lines between the corners (the mapped object in the scene image )
-            line( img_matches, scene_corners[0] + Point2f( mTarget.cols, 0), scene_corners[1] + Point2f( mTarget.cols, 0), Scalar(0, 255, 0), 4 );
-            line( img_matches, scene_corners[1] + Point2f( mTarget.cols, 0), scene_corners[2] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
-            line( img_matches, scene_corners[2] + Point2f( mTarget.cols, 0), scene_corners[3] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
-            line( img_matches, scene_corners[3] + Point2f( mTarget.cols, 0), scene_corners[0] + Point2f( mTarget.cols, 0), Scalar( 0, 255, 0), 4 );
+            line( *frame, scene_corners[0] , scene_corners[1] , Scalar(0, 255, 0), 4 );
+            line( *frame, scene_corners[1] , scene_corners[2] , Scalar( 0, 255, 0), 4 );
+            line( *frame, scene_corners[2] , scene_corners[3] , Scalar( 0, 255, 0), 4 );
+            line( *frame, scene_corners[3] , scene_corners[0] , Scalar( 0, 255, 0), 4 );
 
 
 
@@ -140,35 +138,40 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
            // std::cout<<"**MATCH FOUND***\nDisplaying match, if you want to continue searching, press 'c'";
 
            //Show detected matches
-            cout << "MATCH!" ;
-            imshow( "Source", img_matches );
+           // cout << "MATCH!" ;
+            imshow( "Source", *frame );
             updateWindow("Source");
             waitKey(1);
 
 
             //Get object's center position and move camera towards it
-            Coordinates_t mean ;
-            mean.x=0; mean.y = 0;
+            double meanX=0;
+            double meanY = 0;
             for ( int i = 0 ; i< 4 ; i++){
-                mean.x += (int)scene_corners[i].x;
-                mean.y +=(int) scene_corners[i].y;
+                meanX += scene_corners[i].x;
+                meanY += scene_corners[i].y;
             }
-            mean.x /= 4;
-            mean.y /= 4;
+            meanX /= 4;
+            meanY /= 4;
 
-            cout << " - Starting tracking" << endl;
-            control->move(mean);
-            wait(1);
+            //get relative position in degrees, with Angle of view
+            Coordinates_t mean;
+            mean.x = (int)(meanX / frame->cols * HOR_AOV - HOR_AOV/2);
+            mean.y = (int)(meanY / frame->rows * VER_AOV - VER_AOV/2);
 
-            //key = waitKey(0);
+            cout << "Tracking to (" << mean.x << "," << mean.y << ")"<< endl;
+            control->moveRelative(mean);
+            //wait(2);
+            key = waitKey(2000);
             //if (key != 99 ) // 'c' : continue looking
             //    found = true;
 
 
-        }
+        } else{
         imshow("Source",*frame);
         updateWindow("Source");
         waitKey(1);
+        }
     }
     return true;
 }

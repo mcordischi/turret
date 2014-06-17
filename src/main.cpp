@@ -96,6 +96,12 @@ int main(int argc, char* argv[]){
 
     controller= new FoscamCameraControl(url,user,pwd);
     cout << "Connected" << endl;
+
+    //startCoordinates
+    controller->startCoordinates();
+    wait(60);
+
+
     if (!test){
         //normal program
         tracker = new HorizontalTracker(controller);
@@ -110,10 +116,6 @@ int main(int argc, char* argv[]){
             detector->identifyItem(picPath);
         } else{
             cout << "Image by selection";
-            //startCoordinates
-            //controller->startCoordinates();
-            //wait(60);
-
 
             src = controller->getFrame();
             imshow( "Source", *src );

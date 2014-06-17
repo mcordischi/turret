@@ -66,6 +66,9 @@ public:
     //Moves the camera to a position
     bool move(Coordinates_t);
 
+    //Moves the camera to a position, asuming current camera center is (0,0)
+    bool moveRelative(Coordinates_t);
+
     //Stops movement
     bool stop();
 
