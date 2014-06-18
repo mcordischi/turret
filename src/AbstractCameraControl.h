@@ -8,6 +8,21 @@
 #define __ABS_CAM_CONTROL_H_
 
 
+
+//Camera codes
+//REDEFINE THEM IF NEEDED
+#define CAM_UP 0
+#define CAM_DW 2
+#define CAM_LF 6
+#define CAM_RH 4
+#define CAM_STOP 1
+#define CAM_CENTER 25
+
+//Camera returning values
+#define SUCCESS 1
+#define FAILURE 0
+
+
 /**
 * Camera Control Interface
 **/
@@ -18,6 +33,8 @@ public:
     //Moves the camera in a specific direction and stops
     virtual bool move(int direction, int degree) = 0;
 
+    //Returns true if the camera is still and in position
+    virtual bool isReady() = 0;
 
     //Moves the camera in a specific direction, only one step
     virtual bool moveStep(int dir) = 0 ;

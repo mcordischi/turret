@@ -66,11 +66,12 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
     bool track = true;
         namedWindow( "Source", CV_WINDOW_AUTOSIZE );
 
+
+    Mat* frame;
+    frame= move->getNextFrameOnTrack();
     while (!found && track)
     {
-        Mat* frame;
-        frame= move->getNextFrame();
-        if(! frame->data) { std::cout << "Null frame\n" ; continue;}
+        if(! frame->data) { std::cout << "Null frame\n" ; frame=move->getNextFrameOnTrack(); continue;}
 //        cap >> frame;
 
 /*      //Drop frames
@@ -141,8 +142,7 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
            // cout << "MATCH!" ;
             imshow( "Source", *frame );
             updateWindow("Source");
-            waitKey(1);
-
+            key = waitKey(2000);
 
             //Get object's center position and move camera towards it
             double meanX=0;
@@ -155,14 +155,13 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
             meanY /= 4;
 
             //get relative position in degrees, with Angle of view
-            Coordinates_t mean;
-            mean.x = (int)(meanX / frame->cols * HOR_AOV - HOR_AOV/2);
-            mean.y = (int)(meanY / frame->rows * VER_AOV - VER_AOV/2);
+            Coordinates_t objectCoords;
+            objectCoords.x = (int)(meanX / frame->cols * HOR_AOV - HOR_AOV/2);
 
-            cout << "Tracking to (" << mean.x << "," << mean.y << ")"<< endl;
-            control->moveRelative(mean);
-            //wait(2);
-            key = waitKey(2000);
+            objectCoords.y = (int)(meanY / frame->rows * VER_AOV - VER_AOV/2);
+
+            delete frame;
+            frame = move->getNextFrameOnDetect(objectCoords);
             //if (key != 99 ) // 'c' : continue looking
             //    found = true;
 
@@ -171,6 +170,8 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         imshow("Source",*frame);
         updateWindow("Source");
         waitKey(1);
+        delete frame;
+        frame= move->getNextFrameOnTrack();
         }
     }
     return true;

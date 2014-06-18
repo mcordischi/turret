@@ -1,4 +1,5 @@
 #include "HorizontalTracker.h"
+#include <cstdlib>
 
 HorizontalTracker::HorizontalTracker(AbstractCameraControl* controller){
     this->controller = controller;
@@ -6,7 +7,7 @@ HorizontalTracker::HorizontalTracker(AbstractCameraControl* controller){
 }
 
 
-cv::Mat*  HorizontalTracker::getNextFrame(){
+cv::Mat*  HorizontalTracker::getNextFrameOnTrack(){
 
     cv::Mat* result = controller->getFrame();
 
@@ -26,3 +27,22 @@ cv::Mat*  HorizontalTracker::getNextFrame(){
 
     return result;
 }
+
+
+cv::Mat* HorizontalTracker::getNextFrameOnDetect(Coordinates_t coord){
+
+    cv::Mat* result = controller->getFrame();
+
+
+    //You cant move in two directions right now, just move in a random axis
+    int rand = rand %2;
+    if(rand){
+        if (coord.x > 0) controller->move(CAM_RH,coord.x);
+        else controller->move(CAM_LF,-coord.x);
+    }else{
+        if (coord.y>0) controller->move(CAM_UP,coord.y);
+        else controller->move(CAM_DW,-coord.y);
+    }
+  return result;
+}
+

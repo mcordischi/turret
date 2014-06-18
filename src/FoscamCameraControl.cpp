@@ -46,9 +46,6 @@ FoscamCameraControl::FoscamCameraControl(/*AlarmTriggerer* at,*/ char* url, char
 
 bool FoscamCameraControl::startCoordinates(){
     move(CAM_CENTER,0);
-    isCoordinates = true;
-    coordinates.x = 0;
-    coordinates.y = 0;
 }
 
 
@@ -59,7 +56,7 @@ bool FoscamCameraControl::move(int dir, int degree){
         std::cout << "Movement denied - dir:" << dir << " degree:" << degree << "\n";
         return false;
     }
-
+    std::cout << "MOVE: " << dir << "," << degree << std::endl ;
     char url[75];
 
     sprintf((char*)&url, "%s/decoder_control.cgi?command=%i&onestep=1&degree=%i",cameraURL, dir, degree);
@@ -102,6 +99,21 @@ bool FoscamCameraControl::move(int dir, int degree){
     return false;
 }
 
+
+bool FoscamCameraControl::isReady(){
+    getCoordinates();
+    //Done this way because cameraControl does not support correctly 2 dimension movements.
+    switch (lastDirection){
+        case CAM_UP: return (actualPosition.y == desiredPosition.y);
+        case CAM_DW: return (actualPosition.y == desiredPosition.y);
+        case CAM_RH: return (actualPosition.x == actualPosition.x);
+        case CAM_LF: return (actualPosition.x == actualPosition.x);
+        case CAM_CENTER: return (difftime(time(NULL),lastMove > CENTER_DELAY);
+        default: return true;
+    }
+    return true;
+}
+
 // Like move, but with a default degree.
 // Comment: the onestep parameter without degree moves the camera approx. 10 degree,
 // now the step is setted by software (not the camera) and uses the degree param.
@@ -111,13 +123,14 @@ bool FoscamCameraControl::moveStep(int dir){
 
 //Checks wheter the movement is possible considering the angle
 bool FoscamCameraControl::checkMovement(int dir, int degree){
+    if(dir==CAM_CENTER) return true;
+    getCoordinates(); //Update actualPosition
     if(isCoordinates)
         switch(dir){
-            case CAM_UP: return ((coordinates.y+degree) <= MAX_UP);
-            case CAM_DW: return ((coordinates.y-degree) >= MAX_DW);
-            case CAM_RH: return ((coordinates.x+degree) <= MAX_RH);
-            case CAM_LF: return ((coordinates.x-degree) >= MAX_LF);
-            case CAM_CENTER: return true;
+            case CAM_UP: return ((actualPosition.y+degree) <= MAX_UP);
+            case CAM_DW: return ((actualPosition.y-degree) >= MAX_DW);
+            case CAM_RH: return ((actualPosition.x+degree) <= MAX_RH);
+            case CAM_LF: return ((actualPosition.x-degree) >= MAX_LF);
             case CAM_STOP: return true;
             default: std::cout << "Warning, strange command : DIR="<< dir << " DEG=" << degree  <<"\n";
         }
@@ -125,26 +138,32 @@ bool FoscamCameraControl::checkMovement(int dir, int degree){
 }
 
 void FoscamCameraControl::updateCoordinates(int dir, int degree){
+    if (dir == CAM_CENTER) isCoordinates=true;
     //Only work is coordinate work is activated
     if(isCoordinates)
         switch(dir){
-            case CAM_UP: coordinates.y += degree;
+            case CAM_UP: desiredPosition.y= actualPosition.y + degree;
                          break;
-            case CAM_DW: coordinates.y -= degree;
+            case CAM_DW: desiredPosition.y =actualPosition.y- degree;
                          break;
-            case CAM_RH: coordinates.x += degree;
+            case CAM_RH: desiredPosition.x = actualPosition.x + degree;
                          break;
-            case CAM_LF: coordinates.x -= degree;
+            case CAM_LF: desiredPosition.x =actualPosition.x - degree;
                          break;
-            case CAM_CENTER: coordinates.x = 0;
-                             coordinates.y = 0;
+            case CAM_CENTER: actualPosition.x = 0;
+                             actualPosition.y = 0;
+                             desiredPosition.x = 0;
+                             desiredPosition.y = 0;
                              break;
-            case CAM_STOP: return;
+            case CAM_STOP: desiredPosition.x = actualPosition.x;
+                           desiredPosition.y = actualPosition.y;
+                           break;
             default: std::cout << "Warning, strange command : DIR="<< dir << " DEG=" << degree  <<"\n";
         }
 }
 
     //Moves the camera to a position
+    //WARNING: it has a time waiting problem
 bool FoscamCameraControl::move(Coordinates_t coord){
     bool result = true;
     int x = coord.x - coordinates.x;
@@ -170,7 +189,25 @@ bool FoscamCameraControl::moveRelative(Coordinates_t coord){
 
     //Return the X and Y position of the camera
 Coordinates_t FoscamCameraControl::getCoordinates(){
-    return coordinates;
+    //Update the actualCoordinates
+    double diff = difftime(time(NULL),lastMove);
+
+    switch(lastDirection){
+        case CAM_UP: actualPosition.y = (abs(desiredPosition.y - actualPosition.y) < diff * VER_SPEED ) ?
+                                desiredPosition.y : actualPosition.y + diff * VER_SPEED;
+                     break;
+        case CAM_DW: actualPosition.y = (abs(actualPosition.y - desiredPosition.y) < diff * VER_SPEED ) ?
+                                desiredPosition.y : actualPosition.y - diff * VER_SPEED;
+                     break;
+        case CAM_RH: actualPosition.x = (abs(desiredPosition.x - actualPosition.x) < diff * HOR_SPEED ) ?
+                                desiredPosition.x : actualPosition.x + diff * HOR_SPEED;
+                     break;
+        case CAM_LF: actualPosition.x = (abs(actualPosition.x - desiredPosition.x) < diff * HOR_SPEED ) ?
+                                desiredPosition.x : actualPosition.x - diff * HOR_SPEED;
+                     break;
+        default : break;
+    }
+    return actualPosition;
 }
 
     //Returns the lastest frame obtained from the camera
