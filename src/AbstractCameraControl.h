@@ -53,7 +53,7 @@ public:
     virtual bool startCoordinates() = 0 ;
 
     //Return the X and Y position of the camera
-    virtual Coordinates_t getCoordinates() = 0;
+    //virtual Coordinates_t getCoordinates() = 0;
 
     //Returns the lastest frame obtained from the camera
     virtual cv::Mat* getFrame() = 0;

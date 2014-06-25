@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
 
     //startCoordinates
     controller->startCoordinates();
-    wait(60);
+    wait(75);
 
 
     if (!test){

@@ -33,6 +33,7 @@ cv::Mat* HorizontalTracker::getNextFrameOnDetect(Coordinates_t coord){
 
     cv::Mat* result = controller->getFrame();
 
+    if (!controller->isReady()) return result;
 
     //You cant move in two directions right now, just move in a random axis
     int rand = rand %2;

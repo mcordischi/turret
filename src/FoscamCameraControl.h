@@ -35,9 +35,12 @@ private:
     Coordinates_t actualPosition;
     Coordinates_t desiredPosition;
     int lastDirection;
-    time_t lastMove;
+    int lastMove;
 
-    void updateCoordinates(int dir, int degree);
+    void changeDesiredPosition(int dir, int degree);
+
+    //Updates coordinates and returns actual position
+    Coordinates_t updatePosition();
 
 public:
 
@@ -66,7 +69,7 @@ public:
     bool startCoordinates();
 
     //Return the X and Y position of the camera
-    Coordinates_t getCoordinates();
+   // Coordinates_t getPosition();
 
     //Returns the lastest frame obtained from the camera
     cv::Mat* getFrame();
