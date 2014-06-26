@@ -7,7 +7,6 @@
 #include "opencv2/opencv.hpp"
 #include "curl/curl.h"
 //#include "AlarmTriggerer.h"
-#include <sys/timeb.h> //time in milliseconds
 
 
 FoscamCameraControl::FoscamCameraControl(/*AlarmTriggerer* at,*/ char* url, char* user, char* pwd){
@@ -17,37 +16,9 @@ FoscamCameraControl::FoscamCameraControl(/*AlarmTriggerer* at,*/ char* url, char
     this->pwd = pwd;
     charImage = malloc(sizeof(char) * 320000);
 }
-/*  DEPRECATED: it is better to request a snapshot that start a streaming. Delete on next code review
-	// Start camera Streaming
-    CURL* curl;
-    //Connect to camera
-    curl = curl_easy_init();
-    if(!curl){
-        std::cout << "No curl";
-        std::exit(1);
-    }
-
-
-    char auxURL[100];
-    sprintf((char*)&auxURL, "%s:%s",user,pwd);
-    curl_easy_setopt(curl,CURLOPT_USERPWD,auxURL);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-
- //   moveStep(CAM_CENTRE); //Wait!?
-
-    //get the camera
-    sprintf((char*)&auxURL, "%s/videostream.cgi?user=%s&pwd=%s&resolution=32&dummy=.mjgp",cameraURL,user,pwd);
-    cvCamera= new cv::VideoCapture(auxURL);
-   curl_easy_cleanup(curl);
-
-}
-*/
-
 
 bool FoscamCameraControl::startCoordinates(){
-    timeb tb;
-    ftime(&tb);
-    lastMove =0;
+    lastMove = getNow();
 
     move(CAM_CENTER,0);
 }
@@ -58,10 +29,8 @@ bool FoscamCameraControl::move(int dir, int degree){
 
     //If the movement is less than a step, avoid moving to reduce errors
     if(dir != CAM_CENTER && degree < STEP_DEGREE) return true;
-    updatePosition();
-    std::cout << "Position=(" << actualPosition.x << "," << actualPosition.y << ")" << std::endl;
 
-    //TEMP - If camera not ready, don't move
+       //TEMP - If camera not ready, don't move
     if (!isReady()){
         std::cout << "Camera on movement\n" ;
         return false;
@@ -71,59 +40,22 @@ bool FoscamCameraControl::move(int dir, int degree){
         std::cout << "Movement denied - dir:" << dir << " degree:" << degree << "\n";
         return false;
     }
-    std::cout << "MOVE: " << dir << "," << degree << std::endl ;
-    char url[75];
 
-    sprintf((char*)&url, "%s/decoder_control.cgi?command=%i&onestep=1&degree=%i",cameraURL, dir, degree);
-
-    CURL* curl;
-    curl = curl_easy_init();
-    if(!curl){
-        std::cout << "No curl";
-        std::exit(1);
-    }
-
-
-    char auxURL[100];
-    sprintf((char*)&auxURL, "%s:%s",user,pwd);
-    curl_easy_setopt(curl,CURLOPT_USERPWD,auxURL);
-
-
-
-	curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-
-    //Testing no stdout
-    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION, NULL);
-//    curl_easy_setopt(connection, CURLOPT_WRITEDATA, imageFile);
-
-
-    CURLcode result = curl_easy_perform(curl);
-    if (result == CURLE_OK){
-        // wait
-//        int maxj = 1;
-//        if (dir == CAM_CENTER) maxj=100; //wait more!
-//        for(int j=0;j<maxj;j++)
-//            for(long int i=0; i<MOVE_DELAY*degree*maxj;i++);
-
-        curl_easy_cleanup(curl);
-        changeDesiredPosition(dir,degree);
-        return true;
-    }
-    curl_easy_cleanup(curl);
-    return false;
+    return sendMovementRequest(dir,degree);
 }
 
 
 bool FoscamCameraControl::isReady(){
+    //Update current position before continuing
     updatePosition();
+    std::cout << "Position=(" << currentPosition.x << "," << currentPosition.y << ")" << std::endl;
     //Done this way because cameraControl does not support correctly 2 dimension movements.
     switch (lastDirection){
-        case CAM_UP: return (actualPosition.y == desiredPosition.y);
-        case CAM_DW: return (actualPosition.y == desiredPosition.y);
-        case CAM_RH: return (actualPosition.x == actualPosition.x);
-        case CAM_LF: return (actualPosition.x == actualPosition.x);
-        case CAM_CENTER: return (difftime(time(NULL),lastMove) > CENTER_DELAY);
+        case CAM_UP: return (currentPosition.y == desiredPosition.y);
+        case CAM_DW: return (currentPosition.y == desiredPosition.y);
+        case CAM_RH: return (currentPosition.x == desiredPosition.x);
+        case CAM_LF: return (currentPosition.x == desiredPosition.x);
+        case CAM_CENTER: return ((getNow()-lastMove) > CENTER_DELAY); //TODO Check
         default: return true;
     }
     return true;
@@ -133,19 +65,19 @@ bool FoscamCameraControl::isReady(){
 // Comment: the onestep parameter without degree moves the camera approx. 10 degree,
 // now the step is setted by software (not the camera) and uses the degree param.
 bool FoscamCameraControl::moveStep(int dir){
-    move(dir,STEP_DEGREE);
+    return move(dir,STEP_DEGREE);
 }
 
 //Checks wheter the movement is possible considering the angle
 bool FoscamCameraControl::checkMovement(int dir, int degree){
     if(dir==CAM_CENTER) return true;
-    updatePosition(); //Update actualPosition
+    updatePosition(); //Update currentPosition
     if(isCoordinates)
         switch(dir){
-            case CAM_UP: return ((actualPosition.y+degree) <= MAX_UP);
-            case CAM_DW: return ((actualPosition.y-degree) >= MAX_DW);
-            case CAM_RH: return ((actualPosition.x+degree) <= MAX_RH);
-            case CAM_LF: return ((actualPosition.x-degree) >= MAX_LF);
+            case CAM_UP: return ((currentPosition.y+degree) <= MAX_UP);
+            case CAM_DW: return ((currentPosition.y-degree) >= MAX_DW);
+            case CAM_RH: return ((currentPosition.x+degree) <= MAX_RH);
+            case CAM_LF: return ((currentPosition.x-degree) >= MAX_LF);
             case CAM_STOP: return true;
             default: std::cout << "Warning, strange command : DIR="<< dir << " DEG=" << degree  <<"\n";
         }
@@ -153,25 +85,31 @@ bool FoscamCameraControl::checkMovement(int dir, int degree){
 }
 
 void FoscamCameraControl::changeDesiredPosition(int dir, int degree){
+
+    //Set last move to NOW
+    lastMove = getNow();//now
+    //set lastDirection
+    lastDirection = dir;
+
     if (dir == CAM_CENTER) isCoordinates=true;
     //Only work is coordinate work is activated
     if(isCoordinates)
         switch(dir){
-            case CAM_UP: desiredPosition.y= actualPosition.y + degree;
+            case CAM_UP: desiredPosition.y= currentPosition.y + degree;
                          break;
-            case CAM_DW: desiredPosition.y =actualPosition.y- degree;
+            case CAM_DW: desiredPosition.y =currentPosition.y- degree;
                          break;
-            case CAM_RH: desiredPosition.x = actualPosition.x + degree;
+            case CAM_RH: desiredPosition.x = currentPosition.x + degree;
                          break;
-            case CAM_LF: desiredPosition.x =actualPosition.x - degree;
+            case CAM_LF: desiredPosition.x =currentPosition.x - degree;
                          break;
-            case CAM_CENTER: actualPosition.x = 0;
-                             actualPosition.y = 0;
+            case CAM_CENTER: currentPosition.x = 0;
+                             currentPosition.y = 0;
                              desiredPosition.x = 0;
                              desiredPosition.y = 0;
                              break;
-            case CAM_STOP: desiredPosition.x = actualPosition.x;
-                           desiredPosition.y = actualPosition.y;
+            case CAM_STOP: desiredPosition.x = currentPosition.x;
+                           desiredPosition.y = currentPosition.y;
                            break;
             default: std::cout << "Warning, strange command : DIR="<< dir << " DEG=" << degree  <<"\n";
         }
@@ -184,11 +122,11 @@ bool FoscamCameraControl::move(Coordinates_t coord){
     updatePosition();
     //Only move in one direction
     if ( rand() %2 == 1){
-        int x = coord.x - actualPosition.x;
+        int x = coord.x - currentPosition.x;
         if(x>0) result &= move(CAM_RH,x);
          else   result &= move(CAM_LF,x);
     }else{
-        int y = coord.y - actualPosition.y;
+        int y = coord.y - currentPosition.y;
         if(y>0) result &= move(CAM_UP,y);
         else  result &= move(CAM_DW,y);
     }
@@ -200,14 +138,14 @@ bool FoscamCameraControl::move(Coordinates_t coord){
 bool FoscamCameraControl::moveRelative(Coordinates_t coord){
     Coordinates_t newC;
     updatePosition();
-    newC.x = coord.x + actualPosition.x;
-    newC.y = coord.y + actualPosition.y;
+    newC.x = coord.x + currentPosition.x;
+    newC.y = coord.y + currentPosition.y;
     if ( abs(coord.x) > abs(coord.y)){
         //Move only x
-        newC.y = actualPosition.y;
+        newC.y = currentPosition.y;
     }else{
         //Move only y
-        newC.x = actualPosition.x;
+        newC.x = currentPosition.x;
     }
     std::cout << "relToAbs: " << coord.x << "," << coord.y << ") -> (" << newC.x << "," << newC.y << ")\n" ;
     return move(newC);
@@ -215,45 +153,68 @@ bool FoscamCameraControl::moveRelative(Coordinates_t coord){
 
 
 
-//Updates and returns the actual position of the camera
+//Updates and returns the current position of the camera
 Coordinates_t FoscamCameraControl::updatePosition(){
 
     if(lastDirection==CAM_CENTER){
-        actualPosition.x = 0;
-        actualPosition.y = 0;
-        return actualPosition;
+        currentPosition.x = 0;
+        currentPosition.y = 0;
+        return currentPosition;
     }
 
-    //get actualTime and compare it to lastMove
-    timeb tb;
-    ftime(&tb);
-    int now, diff;
+    //get currentTime and compare it to lastMove
+    double now, diff;
     do{
-        now = tb.millitm + (tb.time & 0xfffff) * 1000;
+        now = getNow();
         diff = now - lastMove;
         std::cout << ".";
         if (diff ==0) wait(1);
     } while (diff==0);
     std::cout << "diff=" << diff << "= " << now << "-"  << lastMove << std::endl;
 
-    //Update the actualCoordinates
+    //Update the currentCoordinates
     switch(lastDirection){
-        case CAM_UP: actualPosition.y = (abs(desiredPosition.y - actualPosition.y) < diff * VER_SPEED ) ?
-                                desiredPosition.y : actualPosition.y + diff * VER_SPEED;
+        case CAM_UP: if (abs(desiredPosition.y-currentPosition.y) < diff * VER_SPEED){ //if movement needed < movement done
+                             //Movement finished
+                             currentPosition.y = desiredPosition.y;
+                             //TODO perform forced move on X
+                             }
+                    break;
+        case CAM_DW:  if (abs(desiredPosition.y-currentPosition.y) < diff * VER_SPEED){
+                             currentPosition.y = desiredPosition.y;
+                             }
+                    break;
+        case CAM_RH:  if (abs(desiredPosition.x-currentPosition.x) < diff * HOR_SPEED){
+                             currentPosition.x = desiredPosition.x;
+                             }
+                    break;
+
+        case CAM_LF:  if (abs(desiredPosition.x-currentPosition.x) < diff * HOR_SPEED){
+                             currentPosition.x = desiredPosition.x;
+                             }
+                    break;
+
+    }
+
+
+    /* DELETE on next code review
+    switch(lastDirection){
+        case CAM_UP: currentPosition.y = (abs(desiredPosition.y - currentPosition.y) < diff * VER_SPEED ) ?
+                                desiredPosition.y : currentPosition.y + diff * VER_SPEED;
                      break;
-        case CAM_DW: actualPosition.y = (abs(actualPosition.y - desiredPosition.y) < diff * VER_SPEED ) ?
-                                desiredPosition.y : actualPosition.y - diff * VER_SPEED;
+        case CAM_DW: currentPosition.y = (abs(currentPosition.y - desiredPosition.y) < diff * VER_SPEED ) ?
+                                desiredPosition.y : currentPosition.y - diff * VER_SPEED;
                      break;
-        case CAM_RH: actualPosition.x = (abs(desiredPosition.x - actualPosition.x) < diff * HOR_SPEED ) ?
-                                desiredPosition.x : actualPosition.x + diff * HOR_SPEED;
+        case CAM_RH: currentPosition.x = (abs(desiredPosition.x - currentPosition.x) < diff * HOR_SPEED ) ?
+                                desiredPosition.x : currentPosition.x + diff * HOR_SPEED;
                      break;
-        case CAM_LF: actualPosition.x = (abs(actualPosition.x - desiredPosition.x) < diff * HOR_SPEED ) ?
-                                desiredPosition.x : actualPosition.x - diff * HOR_SPEED;
+        case CAM_LF: currentPosition.x = (abs(currentPosition.x - desiredPosition.x) < diff * HOR_SPEED ) ?
+                                desiredPosition.x : currentPosition.x - diff * HOR_SPEED;
                      break;
         default : break;
     }
-    lastMove = now;
-    return actualPosition;
+    lastMove = now;*/
+    return currentPosition;
 }
 
     //Returns the lastest frame obtained from the camera
@@ -304,3 +265,52 @@ bool FoscamCameraControl::triggerAlarm(){
 bool FoscamCameraControl::stop(){
     return (this->move(CAM_STOP,0));
 }
+
+
+//curl GET request
+bool FoscamCameraControl::sendMovementRequest(int dir, int degree){
+    std::cout << "MOVE: " << dir << "," << degree << std::endl ;
+    char url[75];
+
+    sprintf((char*)&url, "%s/decoder_control.cgi?command=%i&onestep=1&degree=%i",cameraURL, dir, degree);
+
+    CURL* curl;
+    curl = curl_easy_init();
+    if(!curl){
+        std::cout << "No curl";
+        std::exit(1);
+    }
+
+
+    char auxURL[100];
+    sprintf((char*)&auxURL, "%s:%s",user,pwd);
+    curl_easy_setopt(curl,CURLOPT_USERPWD,auxURL);
+
+
+
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+
+    //Testing no stdout
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION, NULL);
+//    curl_easy_setopt(connection, CURLOPT_WRITEDATA, imageFile);
+
+
+    CURLcode result = curl_easy_perform(curl);
+    if (result == CURLE_OK){
+        // wait
+//        int maxj = 1;
+//        if (dir == CAM_CENTER) maxj=100; //wait more!
+//        for(int j=0;j<maxj;j++)
+//            for(long int i=0; i<MOVE_DELAY*degree*maxj;i++);
+
+        curl_easy_cleanup(curl);
+        changeDesiredPosition(dir,degree);
+        return true;
+    }
+    curl_easy_cleanup(curl);
+    return false;
+
+}
+
+

@@ -17,6 +17,7 @@ cv::Mat*  HorizontalTracker::getNextFrameOnTrack(){
                        break;
         case LF_STATE: direction = LF_STATE_MOVE;
     }
+    if(!controller->isReady()) return result;
 
     if(!controller->moveStep(direction)){
         //change state and call again

@@ -111,7 +111,6 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         if (good_matches.size() >= MIN_GOOD_MATCHES)
         {
 
-            cout << "ITEM FOUND!" ;
 
             //Stop camera from moving
             control->stop();
@@ -160,6 +159,7 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
 
             objectCoords.y = (int)(meanY / frame->rows * VER_AOV - VER_AOV/2);
 
+            cout << "FOUND "<< objectCoords.x << "," << objectCoords.y << endl ;
             delete frame;
             frame = move->getNextFrameOnDetect(objectCoords);
             //if (key != 99 ) // 'c' : continue looking

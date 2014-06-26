@@ -25,4 +25,7 @@ typedef struct{
 /* Waits for a given period of time*/
 void wait(int seconds);
 
+/* Gets the current time*/
+double getNow();
+
 #endif //__UTILS_H_

@@ -19,8 +19,8 @@
 #define MAX_LF -150
 #define MAX_RH 150
 #define CENTER_DELAY 60 //Center function delay in seconds
-#define VER_SPEED 40  //Vertical speed in deg/sec
-#define HOR_SPEED 40  //Horizontal speed in deg/sec
+#define VER_SPEED 10  //Vertical speed in deg/sec
+#define HOR_SPEED 10  //Horizontal speed in deg/sec
 
 
 class FoscamCameraControl : public AbstractCameraControl {
@@ -32,15 +32,19 @@ private:
     char* pwd;
     void* charImage;
     bool isCoordinates;
-    Coordinates_t actualPosition;
+    Coordinates_t currentPosition;
     Coordinates_t desiredPosition;
     int lastDirection;
-    int lastMove;
+    double lastMove; //secs
 
     void changeDesiredPosition(int dir, int degree);
 
-    //Updates coordinates and returns actual position
+    //Updates coordinates and returns current position
     Coordinates_t updatePosition();
+
+    //curl GET request
+    bool sendMovementRequest(int direction, int degree);
+
 
 public:
 
