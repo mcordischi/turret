@@ -15,6 +15,7 @@
 #include "FoscamCameraControl.h"
 #include "HorizontalTracker.h"
 #include "OpenCVDetector.h"
+#include "Drawer.h"
 
 
 using namespace std;
@@ -32,6 +33,7 @@ cv::Mat* loadImage(char* picPath);
 AbstractTracker* tracker;
 AbstractDetector* detector;
 AbstractCameraControl* controller;
+Drawer* drawer;
 
 int main(int argc, char* argv[]){
     cont = false;
@@ -109,6 +111,7 @@ int main(int argc, char* argv[]){
         //normal program
         tracker = new HorizontalTracker(controller);
         detector= new OpenCVDetector();
+        drawer = new Drawer();
 
         // Create Window
         namedWindow( "Source", CV_WINDOW_AUTOSIZE );
@@ -197,10 +200,12 @@ void click_callback(int event, int x, int y, int, void*)
 
 //Tracking
 void startTracking( Mat* target){
+    char key = 'a';
+    namedWindow( "Source", CV_WINDOW_AUTOSIZE );
 
     detector->setTarget(target);
 
-    while(true){
+    while(key != 113){ //'q' : quit
         int matchCount = 0;
         Point2f targetPosition;
         targetPosition.x = targetPosition.y = 0;
@@ -223,19 +228,19 @@ void startTracking( Mat* target){
         //Item foundd?
         if (matchCount >= MIN_MATCH_WINDOW){
             //getMeanPosition
-            targetPosition.x /= matchCount;
-            targetPosition.y /= matchCount;
+            targetPosition.x /= (double)matchCount;
+            targetPosition.y /= (double)matchCount;
 
             coordinates_t gradPos;
             //get relative position in degrees, with Angle of view
             gradPos.x = (int)(targetPosition.x / (double)frame->cols * (double)HOR_AOV - HOR_AOV/2);
-
             gradPos.y = (int)(targetPosition.y / (double)frame->rows * (double)VER_AOV - VER_AOV/2);
 
 
-            //draw image - display it
-            cout << "FOUND "<< targetPosition.x << "," << targetPosition.y << endl ;
+            //draw image
+            cout << "FOUND "<< gradPos.x << "," << gradPos.y << endl ;
 
+            drawer->drawAim(frame,targetPosition);
 
             //Notify Tracker
             tracker->nextStepOnDetect(gradPos);
@@ -243,6 +248,11 @@ void startTracking( Mat* target){
             if(matchCount >0) cout << matchCount <<"/" << TRACK_WINDOW << endl;
             tracker->nextStepOnTrack();
         }
+
+        //display image
+        imshow( "Source", *frame );
+        updateWindow("Source");
+        key = waitKey(20);
     }
 
 

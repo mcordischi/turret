@@ -18,28 +18,29 @@ OpenCVDetector::OpenCVDetector(){
     this->target = new Mat();
 }
 
+//Override
+void OpenCVDetector::setTarget(cv::Mat* target){
+    this->target = target;
+}
 
 
 
 bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
-    int minHessian = 500;
+//TODO Move target processing to setTarget
 
-    SurfFeatureDetector detector( minHessian );
-    std::vector<KeyPoint> kpTarget;
+    int minHessian = 500;
+    std::vector<cv::KeyPoint> kpTarget;
+    cv::SurfFeatureDetector detector(minHessian);
+    cv::SurfDescriptorExtractor extractor;
+    cv::Mat des_object;
+    cv::FlannBasedMatcher matcher;
+    std::vector<cv::Point2f> tgt_corners(4);
 
     detector.detect( *target, kpTarget );
 
     //Calculate descriptors (feature vectors)
-    SurfDescriptorExtractor extractor;
-    Mat des_object;
 
     extractor.compute( *target, kpTarget, des_object );
-
-    FlannBasedMatcher matcher;
-
-    //namedWindow("Capture");
-
-    std::vector<Point2f> tgt_corners(4);
 
     //Get the corners from the object
     tgt_corners[0] = cvPoint(0,0);
@@ -47,10 +48,6 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
     tgt_corners[2] = cvPoint( target->cols, target->rows );
     tgt_corners[3] = cvPoint( 0, target->rows );
 
-    char key = 'a';
-    int framecount = 0;
-    bool found = false;
-    bool track = true;
 
     if(! frame->data) { std::cout << "Null frame\n" ; return false;}
 
@@ -66,7 +63,17 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
     cvtColor(*frame, frameGray, CV_RGB2GRAY);
 
     detector.detect( frameGray, kpFrame );
+
+    if (kpFrame.empty()){
+        std::cout << "frame without KP, ignoring frame\n";
+    }
+
     extractor.compute( frameGray, kpFrame, des_frame );
+
+    if(des_object.empty() || des_frame.empty()){
+        std::cout << "No descriptors found, ignoring frame\n" ;
+        return false;
+    }
 
     matcher.knnMatch(des_object, des_frame, matches, 2);
 
@@ -91,15 +98,9 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
         H = findHomography( obj, scene, CV_RANSAC );
 
         perspectiveTransform( tgt_corners, scene_corners, H);
-        //Draw lines between the corners (the mapped object in the scene image )
-        line( *frame, scene_corners[0] , scene_corners[1] , Scalar(0, 255, 0), 4 );
-        line( *frame, scene_corners[1] , scene_corners[2] , Scalar( 0, 255, 0), 4 );
-        line( *frame, scene_corners[2] , scene_corners[3] , Scalar( 0, 255, 0), 4 );
-        line( *frame, scene_corners[3] , scene_corners[0] , Scalar( 0, 255, 0), 4 );
 
 
-          //Get object's center position and move camera towards it
-
+        //Get object's center position
         for ( int i = 0 ; i< 4 ; i++){
             result.x += scene_corners[i].x;
             result.y += scene_corners[i].y;
