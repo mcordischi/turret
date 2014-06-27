@@ -14,12 +14,113 @@
 using namespace cv;
 using namespace std;
 
-OpenCVDetector::OpenCVDetector(AbstractTracker* move,AbstractCameraControl* control){
-    this->move = move;
-    this->control = control;
+OpenCVDetector::OpenCVDetector(){
+    this->target = new Mat();
 }
 
 
+
+
+bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
+    int minHessian = 500;
+
+    SurfFeatureDetector detector( minHessian );
+    std::vector<KeyPoint> kpTarget;
+
+    detector.detect( *target, kpTarget );
+
+    //Calculate descriptors (feature vectors)
+    SurfDescriptorExtractor extractor;
+    Mat des_object;
+
+    extractor.compute( *target, kpTarget, des_object );
+
+    FlannBasedMatcher matcher;
+
+    //namedWindow("Capture");
+
+    std::vector<Point2f> tgt_corners(4);
+
+    //Get the corners from the object
+    tgt_corners[0] = cvPoint(0,0);
+    tgt_corners[1] = cvPoint( target->cols, 0 );
+    tgt_corners[2] = cvPoint( target->cols, target->rows );
+    tgt_corners[3] = cvPoint( 0, target->rows );
+
+    char key = 'a';
+    int framecount = 0;
+    bool found = false;
+    bool track = true;
+
+    if(! frame->data) { std::cout << "Null frame\n" ; return false;}
+
+    Mat des_frame;  // frame descriptor
+    std::vector<KeyPoint> kpFrame; // frame key points
+    std::vector<vector<DMatch > > matches; // matches between frame and target
+    std::vector<DMatch > good_matches; // subset of matches
+    std::vector<Point2f> obj; //target good matches
+    std::vector<Point2f> scene; // frame good matches
+    std::vector<Point2f> scene_corners(4); // frame corners
+    Mat H; // Homography
+    Mat frameGray; // frame with grayscale
+    cvtColor(*frame, frameGray, CV_RGB2GRAY);
+
+    detector.detect( frameGray, kpFrame );
+    extractor.compute( frameGray, kpFrame, des_frame );
+
+    matcher.knnMatch(des_object, des_frame, matches, 2);
+
+    for(int i = 0; i < min(des_frame.rows-1,(int) matches.size()); i++) //THIS LOOP IS SENSITIVE TO SEGFAULTS
+       {
+        if((matches[i][0].distance < 0.6*(matches[i][1].distance)) && ((int) matches[i].size()<=2 && (int) matches[i].size()>0))
+        {
+            good_matches.push_back(matches[i][0]);
+            }
+        }
+
+    if (good_matches.size() >= MIN_GOOD_MATCHES)
+        {
+            //@Deprecated
+        for( int i = 0; i < good_matches.size(); i++ )
+            {
+            //Get the keypoints from the good matches
+            obj.push_back( kpTarget[ good_matches[i].queryIdx ].pt );
+            scene.push_back( kpFrame[ good_matches[i].trainIdx ].pt );
+        }
+
+        H = findHomography( obj, scene, CV_RANSAC );
+
+        perspectiveTransform( tgt_corners, scene_corners, H);
+        //Draw lines between the corners (the mapped object in the scene image )
+        line( *frame, scene_corners[0] , scene_corners[1] , Scalar(0, 255, 0), 4 );
+        line( *frame, scene_corners[1] , scene_corners[2] , Scalar( 0, 255, 0), 4 );
+        line( *frame, scene_corners[2] , scene_corners[3] , Scalar( 0, 255, 0), 4 );
+        line( *frame, scene_corners[3] , scene_corners[0] , Scalar( 0, 255, 0), 4 );
+
+
+          //Get object's center position and move camera towards it
+
+        for ( int i = 0 ; i< 4 ; i++){
+            result.x += scene_corners[i].x;
+            result.y += scene_corners[i].y;
+        }
+        result.x /= 4.0;
+        result.y /= 4.0;
+
+        //cout << "FOUND "<< objectCoords.x << "," << objectCoords.y << endl ;
+        return true;
+    } else{
+        return false;
+    }
+}
+
+
+
+
+
+
+
+/*
 bool OpenCVDetector::identifyItem(char* picPath)
 {
 
@@ -28,6 +129,8 @@ bool OpenCVDetector::identifyItem(char* picPath)
     return identifyItem(mTarget);
 }
 
+*/
+/*
 bool OpenCVDetector::identifyItem(cv::Mat mTarget)
 {
     //startCoordinates -- Already in main
@@ -74,13 +177,13 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         if(! frame->data) { std::cout << "Null frame\n" ; continue;}
 //        cap >> frame;
 
-/*      //Drop frames
-        if (framecount < 5)
-        {
-            framecount++;
-            continue;
-        }
-*/
+      //Drop frames
+//        if (framecount < 5)
+//        {
+//            framecount++;
+//            continue;
+//        }
+
         Mat des_frame;  // frame descriptor
         std::vector<KeyPoint> kpFrame; // frame key points
         std::vector<vector<DMatch > > matches; // matches between frame and target
@@ -104,10 +207,10 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
                 good_matches.push_back(matches[i][0]);
             }
         }
-/*
+
         //Draw only "good" matches
-        drawMatches( mTarget, kpTarget, frameGray, kpImage, good_matches, img_matches, Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
-*/
+//        drawMatches( mTarget, kpTarget, frameGray, kpImage, good_matches, img_matches, Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+
         if (good_matches.size() >= MIN_GOOD_MATCHES)
         {
 
@@ -173,4 +276,4 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         }
     }
     return true;
-}
+}*/

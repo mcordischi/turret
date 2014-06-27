@@ -9,14 +9,20 @@
 class OpenCVDetector : public AbstractDetector{
 
     public:
+/*
+        OpenCVDetector(AbstractTracker*,AbstractCameraControl*);*/
 
-        OpenCVDetector(AbstractTracker*,AbstractCameraControl*);
+        OpenCVDetector();
 
+        bool identifyItem(cv::Mat* frame, cv::Point2f &result);
+
+/*
         bool identifyItem(char* picPath);
         bool identifyItem(cv::Mat item);
 private:
     AbstractTracker* move;
     AbstractCameraControl* control;
+    */
 };
 
 

@@ -25,6 +25,9 @@ vector<Mat> r;
 bool cont;
 //int selectorExample( int, char**);
 void click_callback(int, int, int, int, void*);
+void startTracking( Mat* target);
+cv::Mat* loadImage(char* picPath);
+
 
 AbstractTracker* tracker;
 AbstractDetector* detector;
@@ -105,7 +108,7 @@ int main(int argc, char* argv[]){
     if (!test){
         //normal program
         tracker = new HorizontalTracker(controller);
-        detector= new OpenCVDetector(tracker,controller);
+        detector= new OpenCVDetector();
 
         // Create Window
         namedWindow( "Source", CV_WINDOW_AUTOSIZE );
@@ -113,7 +116,7 @@ int main(int argc, char* argv[]){
         if(imageByParam){
             cout << "Image by parameter";
             char* picPath= argv[1];
-            detector->identifyItem(picPath);
+            startTracking(loadImage(picPath));
         } else{
             cout << "Image by selection";
 
@@ -124,7 +127,7 @@ int main(int argc, char* argv[]){
                 //wait(1);
                 waitKey(100);
             }while (!cont); // 'q' : quit
-            detector->identifyItem(r[0]);
+            startTracking(&r[0]);
         }
         return 0;
     }
@@ -188,5 +191,68 @@ void click_callback(int event, int x, int y, int, void*)
         cout << "Looking for r[0]" << endl;
         cont = true;
     }
+}
+
+
+
+//Tracking
+void startTracking( Mat* target){
+
+    detector->setTarget(target);
+
+    while(true){
+        int matchCount = 0;
+        Point2f targetPosition;
+        targetPosition.x = targetPosition.y = 0;
+
+
+        Mat* frame ;
+        //Grab a number of frames, analyze them
+        for (int i = 0 ; i < TRACK_WINDOW;i++){
+            frame = controller->getFrame();
+             Point2f c;
+             bool match = detector->identifyItem(frame,c);
+             if ( match ){ //Match
+                 matchCount++;
+                 targetPosition.x += c.x;
+                 targetPosition.y += c.y;
+            }
+              }
+
+
+        //Item foundd?
+        if (matchCount >= MIN_MATCH_WINDOW){
+            //getMeanPosition
+            targetPosition.x /= matchCount;
+            targetPosition.y /= matchCount;
+
+            coordinates_t gradPos;
+            //get relative position in degrees, with Angle of view
+            gradPos.x = (int)(targetPosition.x / (double)frame->cols * (double)HOR_AOV - HOR_AOV/2);
+
+            gradPos.y = (int)(targetPosition.y / (double)frame->rows * (double)VER_AOV - VER_AOV/2);
+
+
+            //draw image - display it
+            cout << "FOUND "<< targetPosition.x << "," << targetPosition.y << endl ;
+
+
+            //Notify Tracker
+            tracker->nextStepOnDetect(gradPos);
+        } else{
+            if(matchCount >0) cout << matchCount <<"/" << TRACK_WINDOW << endl;
+            tracker->nextStepOnTrack();
+        }
+    }
+
+
+}
+
+
+//Image loader
+cv::Mat* loadImage(char* picPath){
+    cv::Mat* mTarget = new cv::Mat(imread( picPath, CV_LOAD_IMAGE_GRAYSCALE ));
+    if (! mTarget->data){ std::cout << "Error: no picture" ;}
+    return mTarget;
 }
 

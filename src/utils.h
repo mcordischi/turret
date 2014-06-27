@@ -9,7 +9,14 @@
 
 //System constants
 #define REQUIRED_PARAMS 3   //config.txt parameters
-#define MIN_GOOD_MATCHES 8 //number of good matches to find object
+#define MIN_GOOD_MATCHES 4 //number of good matches to find object
+
+//TRACKING CONSTANTS
+#define TRACK_WINDOW 5 //Number of frames to analyze at once
+#define MIN_MATCH_WINDOW 3 //Min number of frame matches in order to accept the target has been found
+
+
+//CAMERA CONSTANTS
 #define HOR_AOV 60 //Horizontal angle of view
 #define VER_AOV 60 //Vertical angle of view
 
@@ -18,7 +25,7 @@
 typedef struct{
     int x;
     int y;
-}Coordinates_t;
+}coordinates_t,Coordinates_t; //Don't use the one with capital C
 
 
 
