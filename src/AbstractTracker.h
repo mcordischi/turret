@@ -8,10 +8,11 @@ class AbstractTracker {
     public:
 
         //Returns the next desired frame
-        virtual cv::Mat* getNextFrameOnTrack() = 0;
+        virtual void nextStepOnTrack() = 0;
 
         //Returns the next frame on a tracking state
-        virtual cv::Mat* getNextFrameOnDetect(Coordinates_t) = 0;
+        virtual void nextStepOnDetect(Coordinates_t) = 0;
+
 };
 
 #endif //__ABS_TRACKER_H_

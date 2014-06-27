@@ -15,6 +15,7 @@ FoscamCameraControl::FoscamCameraControl(/*AlarmTriggerer* at,*/ char* url, char
     this->user = user;
     this->pwd = pwd;
     charImage = malloc(sizeof(char) * 320000);
+    frame = new cv::Mat();
 }
 
 bool FoscamCameraControl::startCoordinates(){
@@ -32,7 +33,7 @@ bool FoscamCameraControl::move(int dir, int degree){
 
        //TEMP - If camera not ready, don't move
     if (!isReady()){
-        std::cout << "Camera on movement\n" ;
+        std::cout << "Camera on movement - New move rejected\n" ;
         return false;
     }
 
@@ -120,13 +121,13 @@ void FoscamCameraControl::changeDesiredPosition(int dir, int degree){
 bool FoscamCameraControl::move(Coordinates_t coord){
     bool result = true;
     updatePosition();
-    //Only move in one direction
-    if ( rand() %2 == 1){
-        int x = coord.x - currentPosition.x;
+    //Only move in one direction - the one with the biggest difference
+    int x = coord.x - currentPosition.x;
+    int y = coord.y - currentPosition.y;
+    if ( abs(x)>abs(y)){
         if(x>0) result &= move(CAM_RH,x);
          else   result &= move(CAM_LF,x);
     }else{
-        int y = coord.y - currentPosition.y;
         if(y>0) result &= move(CAM_UP,y);
         else  result &= move(CAM_DW,y);
     }
@@ -167,10 +168,10 @@ Coordinates_t FoscamCameraControl::updatePosition(){
     do{
         now = getNow();
         diff = now - lastMove;
-        std::cout << ".";
+    //    std::cout << ".";
         if (diff ==0) wait(1);
     } while (diff==0);
-    std::cout << "diff=" << diff << "= " << now << "-"  << lastMove << std::endl;
+    //std::cout << "diff=" << diff << "= " << now << "-"  << lastMove << std::endl;
 
     //Update the currentCoordinates
     switch(lastDirection){
@@ -247,11 +248,12 @@ cv::Mat* FoscamCameraControl::getFrame(){
         curl_easy_cleanup(connection);
         fclose(imageFile);
 
+        delete frame; //delete last frame
         //Read image from file
-        cv::Mat* image = new cv::Mat(cv::imread("img.jpg",1 ));
-        return image;
+        frame  = new cv::Mat(cv::imread("img.jpg",1 ));
+        return frame;
     }
-    return new cv::Mat();
+    return frame;
 }
 
 //Triggers the alarm

@@ -9,7 +9,7 @@
 
 //System constants
 #define REQUIRED_PARAMS 3   //config.txt parameters
-#define MIN_GOOD_MATCHES 4 //number of good matches to find object
+#define MIN_GOOD_MATCHES 8 //number of good matches to find object
 #define HOR_AOV 60 //Horizontal angle of view
 #define VER_AOV 60 //Vertical angle of view
 

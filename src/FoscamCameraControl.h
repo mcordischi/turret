@@ -36,6 +36,7 @@ private:
     Coordinates_t desiredPosition;
     int lastDirection;
     double lastMove; //secs
+    cv::Mat* frame;
 
     void changeDesiredPosition(int dir, int degree);
 

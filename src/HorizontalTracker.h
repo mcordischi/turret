@@ -24,10 +24,10 @@ class HorizontalTracker : public AbstractTracker {
         HorizontalTracker(AbstractCameraControl*);
 
         //Returns the next desired frame
-        cv::Mat* getNextFrameOnTrack();
+        void nextStepOnTrack();
 
         //Returns the next frame on a tracking state
-        cv::Mat* getNextFrameOnDetect(Coordinates_t);
+        void nextStepOnDetect(Coordinates_t);
 
 };
 

@@ -68,10 +68,10 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
 
 
     Mat* frame;
-    frame= move->getNextFrameOnTrack();
     while (!found && track)
     {
-        if(! frame->data) { std::cout << "Null frame\n" ; frame=move->getNextFrameOnTrack(); continue;}
+        frame= control->getFrame();
+        if(! frame->data) { std::cout << "Null frame\n" ; continue;}
 //        cap >> frame;
 
 /*      //Drop frames
@@ -150,18 +150,17 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
                 meanX += scene_corners[i].x;
                 meanY += scene_corners[i].y;
             }
-            meanX /= 4;
-            meanY /= 4;
+            meanX /= 4.0;
+            meanY /= 4.0;
 
             //get relative position in degrees, with Angle of view
             Coordinates_t objectCoords;
-            objectCoords.x = (int)(meanX / frame->cols * HOR_AOV - HOR_AOV/2);
+            objectCoords.x = (int)(meanX / (double)frame->cols * (double)HOR_AOV - HOR_AOV/2);
 
-            objectCoords.y = (int)(meanY / frame->rows * VER_AOV - VER_AOV/2);
+            objectCoords.y = (int)(meanY / (double)frame->rows * (double)VER_AOV - VER_AOV/2);
 
             cout << "FOUND "<< objectCoords.x << "," << objectCoords.y << endl ;
-            delete frame;
-            frame = move->getNextFrameOnDetect(objectCoords);
+            move->nextStepOnDetect(objectCoords);
             //if (key != 99 ) // 'c' : continue looking
             //    found = true;
 
@@ -170,8 +169,7 @@ bool OpenCVDetector::identifyItem(cv::Mat mTarget)
         imshow("Source",*frame);
         updateWindow("Source");
         waitKey(1);
-        delete frame;
-        frame= move->getNextFrameOnTrack();
+         move->nextStepOnTrack();
         }
     }
     return true;
