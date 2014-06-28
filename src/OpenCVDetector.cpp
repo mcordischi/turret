@@ -85,7 +85,8 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
             }
         }
 
-    if (good_matches.size() >= MIN_GOOD_MATCHES)
+//    if (good_matches.size() >= MIN_GOOD_MATCHES)
+    if(good_matches.size() >= MIN_GOOD_MATCHES_RATIO * kpTarget.size())
         {
             //@Deprecated
         for( int i = 0; i < good_matches.size(); i++ )

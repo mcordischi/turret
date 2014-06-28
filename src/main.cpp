@@ -225,7 +225,7 @@ void startTracking( Mat* target){
               }
 
 
-        //Item foundd?
+        //Item found?
         if (matchCount >= MIN_MATCH_WINDOW){
             //getMeanPosition
             targetPosition.x /= (double)matchCount;
@@ -234,11 +234,15 @@ void startTracking( Mat* target){
             coordinates_t gradPos;
             //get relative position in degrees, with Angle of view
             gradPos.x = (int)(targetPosition.x / (double)frame->cols * (double)HOR_AOV - HOR_AOV/2);
-            gradPos.y = (int)(targetPosition.y / (double)frame->rows * (double)VER_AOV - VER_AOV/2);
+            gradPos.y = VER_AOV/2 - (int)(targetPosition.y / (double)frame->rows * (double)VER_AOV);
 
 
             //draw image
             cout << "FOUND "<< gradPos.x << "," << gradPos.y << endl ;
+            cout << "\t" << targetPosition.x<< "," << targetPosition.y<< endl;
+            cout << "\t" << (double)frame->cols << "," << (double)frame->rows << endl;
+            cout << "\t" << targetPosition.x /(double)frame->cols << "," << targetPosition.y/(double)frame->rows << endl;
+
 
             drawer->drawAim(frame,targetPosition);
 

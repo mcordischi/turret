@@ -13,14 +13,14 @@
 
 
 //Movement Constants
-#define STEP_DEGREE 10 //CHECK
+#define STEP_DEGREE 4 //CHECK
 #define MAX_UP 60
 #define MAX_DW -60
 #define MAX_LF -150
 #define MAX_RH 150
-#define CENTER_DELAY 60 //Center function delay in seconds
-#define VER_SPEED 10  //Vertical speed in deg/sec
-#define HOR_SPEED 10  //Horizontal speed in deg/sec
+#define CENTER_DELAY 70 //Center function delay in seconds - 55< real < 70
+#define VER_SPEED 10  //Vertical speed in deg/sec - real ~ 12
+#define HOR_SPEED 10  //Horizontal speed in deg/sec - real ~ 10
 
 
 class FoscamCameraControl : public AbstractCameraControl {

@@ -9,11 +9,14 @@
 
 //System constants
 #define REQUIRED_PARAMS 3   //config.txt parameters
+
+//DETECTOR CONSTANTS
 #define MIN_GOOD_MATCHES 4 //number of good matches to find object, MUST be >=4
+#define MIN_GOOD_MATCHES_RATIO 0.4
 
 //TRACKING CONSTANTS
-#define TRACK_WINDOW 1 //Number of frames to analyze at once
-#define MIN_MATCH_WINDOW 1 //Min number of frame matches in order to accept the target has been found
+#define TRACK_WINDOW 15 //Number of frames to analyze at once
+#define MIN_MATCH_WINDOW 4 //Min number of frame matches in order to accept the target has been found
 
 
 //CAMERA CONSTANTS
