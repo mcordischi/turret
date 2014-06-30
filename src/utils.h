@@ -15,8 +15,8 @@
 #define MIN_GOOD_MATCHES_RATIO 0.4
 
 //TRACKING CONSTANTS
-#define TRACK_WINDOW 15 //Number of frames to analyze at once
-#define MIN_MATCH_WINDOW 4 //Min number of frame matches in order to accept the target has been found
+#define TRACK_WINDOW 7 //Number of frames to analyze at once
+#define MIN_MATCH_WINDOW 3 //Min number of frame matches in order to accept the target has been found
 
 
 //CAMERA CONSTANTS

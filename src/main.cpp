@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 
     //startCoordinates
     controller->startCoordinates();
-  //  wait(75);
+    wait(75);
 
 
     if (!test){
@@ -132,6 +132,11 @@ int main(int argc, char* argv[]){
             }while (!cont); // 'q' : quit
             target = &r[0];
         }
+        //Display target
+        namedWindow("Target", CV_WINDOW_AUTOSIZE);
+        imshow( "Target", *target );
+        waitKey(1);
+
         startTracking(target);
         return 0;
     }
@@ -185,9 +190,9 @@ void click_callback(int event, int x, int y, int, void*)
         namedWindow( "Target", CV_WINDOW_AUTOSIZE );
         //namedWindow( "1", CV_WINDOW_AUTOSIZE );
         //namedWindow( "2", CV_WINDOW_AUTOSIZE );
-        if(r.size()>0)
-            imshow( "Target", r[0] );
-        waitKey(1);
+//        if(r.size()>0)
+//            imshow( "Target", r[0] );
+//        waitKey(1);
    /*     if(r.size()>1)
             imshow( "1", r[1] );
         if(r.size()>2)
@@ -218,7 +223,6 @@ void startTracking( Mat* target){
             frame = controller->getFrame();
              Point2f c;
              bool match = detector->identifyItem(frame,c);
-             return;
              if ( match ){ //Match
                  matchCount++;
                  targetPosition.x += c.x;
