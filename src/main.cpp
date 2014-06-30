@@ -86,25 +86,25 @@ int main(int argc, char* argv[]){
 		configParams++;
 	  }
 	}
-
     configFile.close();
-
     if (configParams < REQUIRED_PARAMS){
         cout << "Error: Missing parameters in config file";
         exit(EXIT_FAILURE);
     }
 
+    //Print camera info
     cout << "--CAMERA INFO (from config.txt)--\n";
     cout << "URL: " << url << "\n";
     cout << "user: " << user<< "\n";
     cout << "pwd: " << pwd << "\n";
 
+    //Create camera controller
     controller= new FoscamCameraControl(url,user,pwd);
     cout << "Connected" << endl;
 
     //startCoordinates
     controller->startCoordinates();
-    wait(75);
+  //  wait(75);
 
 
     if (!test){
@@ -116,13 +116,13 @@ int main(int argc, char* argv[]){
         // Create Window
         namedWindow( "Source", CV_WINDOW_AUTOSIZE );
 
+        Mat* target;
         if(imageByParam){
-            cout << "Image by parameter";
+            cout << "Image by parameter" << endl;
             char* picPath= argv[1];
-            startTracking(loadImage(picPath));
+            target = loadImage(picPath);
         } else{
-            cout << "Image by selection";
-
+            cout << "Image by selection" << endl;
             src = controller->getFrame();
             imshow( "Source", *src );
             setMouseCallback("Source", click_callback);
@@ -130,8 +130,9 @@ int main(int argc, char* argv[]){
                 //wait(1);
                 waitKey(100);
             }while (!cont); // 'q' : quit
-            startTracking(&r[0]);
+            target = &r[0];
         }
+        startTracking(target);
         return 0;
     }
     else{
@@ -217,6 +218,7 @@ void startTracking( Mat* target){
             frame = controller->getFrame();
              Point2f c;
              bool match = detector->identifyItem(frame,c);
+             return;
              if ( match ){ //Match
                  matchCount++;
                  targetPosition.x += c.x;

@@ -12,10 +12,13 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
+#include <vector>
+
+#define MIN_HESSIAN 500
 
 class OpenCVDetector : public AbstractDetector{
 
-    public:
+public:
 /*
         OpenCVDetector(AbstractTracker*,AbstractCameraControl*);*/
 

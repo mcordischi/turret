@@ -11,7 +11,7 @@
 #define REQUIRED_PARAMS 3   //config.txt parameters
 
 //DETECTOR CONSTANTS
-#define MIN_GOOD_MATCHES 4 //number of good matches to find object, MUST be >=4
+#define MIN_KEY_POINTS 4 // min number of kp to accept the target image, MUST be >=4
 #define MIN_GOOD_MATCHES_RATIO 0.4
 
 //TRACKING CONSTANTS
