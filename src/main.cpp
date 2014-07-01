@@ -17,18 +17,29 @@
 #include "OpenCVDetector.h"
 #include "Drawer.h"
 #include "squareobjectselector.h"
+#include "facedetector.h"
 
 using namespace std;
 using namespace cv;
 
 Mat* src;
 vector<Mat> r;
-bool cont;
+Point2f* clickPosition;
+bool cont; //waiting signal
+
 //int selectorExample( int, char**);
 void click_callback(int, int, int, int, void*);
 void startTracking( Mat* target);
 cv::Mat* loadImage(char* picPath);
 
+//Execution type
+#define NORMAL 0
+#define TEST 1
+#define FACE_DETECTION 2
+
+//Normal execution type
+#define PARAMETER 0
+#define SELECTION 1
 
 AbstractTracker* tracker;
 AbstractDetector* detector;
@@ -40,17 +51,23 @@ int main(int argc, char* argv[]){
 
     //Check Parameters
     if(argc > 8 ){
-        std::cout << "Usage: tracker [image]\n"
-                  << "               [-t] [-i iterations] [-p outputImagePath] [--display]\n  ";
+        std::cout << "Usage: tracker [image] Normal execution\n"
+                  << "               [-f] Face detection"
+                  << "               [-t] [-i iterations] [-p outputImagePath] [--display]\n Test ";
         exit(EXIT_FAILURE);
     }
 
-    bool test = false;
-    bool imageByParam = false;
-
+    //Execution determination
+    int system = -1;
+    int normal = -1;
     for (int i =1 ; i< argc; i++)
-        if (strcmp(argv[1], "-t") == 0){  test= true; break;}
-    if (!test && argc > 1) imageByParam = true;
+        if (strcmp(argv[i], "-t") == 0){  system = TEST; break;}
+        else if(strcmp(argv[i], "-f") == 0 ){ system = FACE_DETECTION; break;}
+    if (system < 0){
+        system = NORMAL;
+        if (argc > 1) normal = PARAMETER;
+        else normal = SELECTION;
+    }
 
     char* url;// = "http://192.168.1.200";
     char* user;// = "admin";
@@ -106,70 +123,90 @@ int main(int argc, char* argv[]){
     controller->startCoordinates();
     wait(75);
 
+    Mat* target;
+    switch(system){
+        case (NORMAL):{
+            //normal program
+            tracker = new HorizontalTracker(controller);
+            detector= new OpenCVDetector();
+            drawer = new Drawer();
 
-    if (!test){
-        //normal program
-        tracker = new HorizontalTracker(controller);
-        detector= new OpenCVDetector();
-        drawer = new Drawer();
+            // Create Window
+            namedWindow( "Source", CV_WINDOW_AUTOSIZE );
 
-        // Create Window
-        namedWindow( "Source", CV_WINDOW_AUTOSIZE );
+            if(normal == PARAMETER){
+                cout << "Image by parameter" << endl;
+                char* picPath= argv[1];
+                target = loadImage(picPath);
+            } else{
+                cout << "Image by selection" << endl;
+                src = controller->getFrame();
+                imshow( "Source", *src );
+                setMouseCallback("Source", click_callback);
+                do{
+                    waitKey(100);
+                }while (!cont); // 'q' : quit
+                target = &r[0];
+            }
+            //Display target
+            drawer->drawKp(target);
+            namedWindow("Target", CV_WINDOW_AUTOSIZE);
+            imshow( "Target", *target );
+            waitKey(1);
 
-        Mat* target;
-        if(imageByParam){
-            cout << "Image by parameter" << endl;
-            char* picPath= argv[1];
-            target = loadImage(picPath);
-        } else{
-            cout << "Image by selection" << endl;
-            src = controller->getFrame();
-            imshow( "Source", *src );
-            setMouseCallback("Source", click_callback);
-            do{
-                //wait(1);
-                waitKey(100);
-            }while (!cont); // 'q' : quit
-            target = &r[0];
+            startTracking(target);
+            break;
         }
-        //Display target
-        namedWindow("Target", CV_WINDOW_AUTOSIZE);
-        imshow( "Target", *target );
-        waitKey(1);
+        case (TEST):{
+            //testPrecision program
+            cout << "---Testing precision---\n" ;
+            int iterations = 5;
+            char* outputPath = "./";
+            bool display = false;
 
-        startTracking(target);
-        return 0;
-    }
-    else{
-        //testPrecision program
-        cout << "---Testing precision---\n" ;
-        int iterations = 5;
-        char* outputPath = "./";
-        bool display = false;
-
-        for(int args = 2; args<argc; args++){
-            if (strcmp(argv[args], "-i" ) == 0){
-                args++;
-                iterations = atoi(argv[args]);
-            } else {
-                if(strcmp(argv[args], "-p") == 0){
+            for(int args = 2; args<argc; args++){
+                if (strcmp(argv[args], "-i" ) == 0){
                     args++;
-                    outputPath = argv[args];
-                       } else {
-                if(strcmp(argv[args], "--display") == 0 ){
-                    display = true;
-                }
-                else  cout<< "Wrong usage. Check parameters";
+                    iterations = atoi(argv[args]);
+                } else {
+                    if(strcmp(argv[args], "-p") == 0){
+                        args++;
+                        outputPath = argv[args];
+                    } else {
+                    if(strcmp(argv[args], "--display") == 0 ){
+                        display = true;
+                    }
+                    else  cout<< "Wrong usage. Check parameters";
+                    }
                 }
             }
-        }
 
-        cout << "Number of iterations: "<<  iterations << "\n";
-        cout << "output Path: " << outputPath  << "\n";
-
+            cout << "Number of iterations: "<<  iterations << "\n";
+            cout << "output Path: " << outputPath  << "\n";
 
             cout << "Starting test...\n" ;
-               testPrecision(controller,outputPath,iterations,display);
+            testPrecision(controller,outputPath,iterations,display);
+            break;
+        }
+        case (FACE_DETECTION):{
+                cout << "Face detection" << endl;
+                src = controller->getFrame();
+                imshow( "Source", *src );
+                setMouseCallback("Source", click_callback);
+                do{
+                    waitKey(100);
+                }while (!cont); // 'q' : quit
+                target = &r[0];
+
+                //Display target
+                namedWindow("Target", CV_WINDOW_AUTOSIZE);
+                imshow( "Target", *target );
+                waitKey(1);
+                detector= new FaceDetector(*clickPosition);
+
+                startTracking(target);
+                break;
+        }
     }
     //TODO delete temp images
 
@@ -189,17 +226,9 @@ void click_callback(int event, int x, int y, int, void*)
         squareObjectSelector sel;
         r = sel.getObjects(src,Point2d(x,y));
         namedWindow( "Target", CV_WINDOW_AUTOSIZE );
-        //namedWindow( "1", CV_WINDOW_AUTOSIZE );
-        //namedWindow( "2", CV_WINDOW_AUTOSIZE );
-//        if(r.size()>0)
-//            imshow( "Target", r[0] );
-//        waitKey(1);
-   /*     if(r.size()>1)
-            imshow( "1", r[1] );
-        if(r.size()>2)
-            imshow( "2", r[2] );*/
-        cout << "Looking for r[0]" << endl;
         cont = true;
+
+        clickPosition = new Point2f((double)x,(double)y);
     }
 }
 
@@ -260,6 +289,7 @@ void startTracking( Mat* target){
             tracker->nextStepOnTrack();
         }
 
+        drawer->drawKp(frame);
         //display image
         imshow( "Source", *frame );
         updateWindow("Source");

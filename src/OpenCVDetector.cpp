@@ -27,7 +27,7 @@ void OpenCVDetector::setTarget(cv::Mat* target){
 
 bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
 //TODO Move target processing to setTarget
-
+// Problems with mat pointers when trying that
     int minHessian = 500;
     std::vector<cv::KeyPoint> kpTarget;
     cv::SurfFeatureDetector detector(minHessian);
@@ -84,7 +84,7 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
             good_matches.push_back(matches[i][0]);
             }
         }
-
+    std::cout << "Matches:" << good_matches.size() << " Needed:" << MIN_GOOD_MATCHES_RATIO * kpTarget.size()<< std::endl;
 //    if (good_matches.size() >= MIN_GOOD_MATCHES)
     if(good_matches.size() >= MIN_GOOD_MATCHES_RATIO * kpTarget.size())
         {

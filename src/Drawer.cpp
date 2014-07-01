@@ -29,3 +29,13 @@ void Drawer::drawRectangle(Mat* frame, std::vector<Point2f> edges){
 
 
 }
+
+void Drawer::drawKp(Mat* frame){
+    int minHessian = 500;
+    std::vector<cv::KeyPoint> kp;
+    cv::SurfFeatureDetector detector(minHessian);
+
+    detector.detect(*frame,kp);
+
+    drawKeypoints(*frame,kp,*frame);
+}
