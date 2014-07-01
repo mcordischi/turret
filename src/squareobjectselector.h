@@ -1,20 +1,20 @@
-#ifndef OBJECTSELECTOR_H
-#define OBJECTSELECTOR_H
+#ifndef SQUAREOBJECTSELECTOR_H
+#define SQUAREOBJECTSELECTOR_H
 
 #include "AbstractCameraControl.h"
 #include <vector>
 #include <opencv2/core/core.hpp>
 
-
-class ObjectSelector
+class squareObjectSelector : public ObjectSelector
 {
 public:
-    ObjectSelector(int thresh);
-    ObjectSelector(int thresh, int maxRet);
+    squareObjectSelector(double wide = 50);
     virtual std::vector<cv::Mat> getObjects(cv::Mat * src, cv::Point2d p);
 private:
-    int thresh;
-    unsigned int maxRet;
+    double wide;
 };
 
 #endif // OBJECTSELECTOR_H
+
+
+#endif // SQUAREOBJECTSELECTOR_H
