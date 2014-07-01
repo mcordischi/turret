@@ -10,10 +10,11 @@ class FaceDetector : public AbstractDetector
 {
 public:
     FaceDetector();
+    FaceDetector(cv::Point2f);
     virtual bool identifyItem(cv::Mat* frame, cv::Point2f &result);
 private:
     cv::CascadeClassifier face_cascade;
-    cv::Point lPoint;
+    cv::Point2f lPoint;
 };
 
 #endif // FACEDETECTOR_H
