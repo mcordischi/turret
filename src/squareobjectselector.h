@@ -1,20 +1,22 @@
 #ifndef SQUAREOBJECTSELECTOR_H
 #define SQUAREOBJECTSELECTOR_H
 
-#include "AbstractCameraControl.h"
+#include "ObjectSelector.h"
 #include <vector>
 #include <opencv2/core/core.hpp>
+
+
+#define DEFAULT_WIDE_RATIO 0.4
 
 class squareObjectSelector : public ObjectSelector
 {
 public:
-    squareObjectSelector(double wide = 50);
-    virtual std::vector<cv::Mat> getObjects(cv::Mat * src, cv::Point2d p);
+    squareObjectSelector(double wideRatio);
+    squareObjectSelector();
+    std::vector<cv::Mat> getObjects(cv::Mat * src, cv::Point2f p);
 private:
-    double wide;
+    double wideRatio;
 };
-
-#endif // OBJECTSELECTOR_H
 
 
 #endif // SQUAREOBJECTSELECTOR_H

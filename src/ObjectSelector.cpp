@@ -1,5 +1,11 @@
 #include "ObjectSelector.h"
 #include <limits>
+
+ObjectSelector::ObjectSelector(){
+    this->thresh = DEFAULT_THRESH;
+}
+
+
 ObjectSelector::ObjectSelector(int thresh) : thresh(thresh), maxRet((unsigned)-1)
 {
 
@@ -24,7 +30,7 @@ private:
     int id;
 };
 
-std::vector<cv::Mat> ObjectSelector::getObjects(cv::Mat * src, cv::Point2d p)
+std::vector<cv::Mat> ObjectSelector::getObjects(cv::Mat * src, cv::Point2f p)
 {
     std::vector<std::vector<cv::Point> > contours;
     std::vector<cv::Vec4i> hierarchy;

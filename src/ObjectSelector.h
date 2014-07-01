@@ -5,13 +5,15 @@
 #include <vector>
 #include <opencv2/core/core.hpp>
 
+#define DEFAULT_THRESH 50
 
 class ObjectSelector
 {
 public:
+    ObjectSelector();
     ObjectSelector(int thresh);
     ObjectSelector(int thresh, int maxRet);
-    virtual std::vector<cv::Mat> getObjects(cv::Mat * src, cv::Point2d p);
+    virtual std::vector<cv::Mat> getObjects(cv::Mat * src, cv::Point2f p);
 private:
     int thresh;
     unsigned int maxRet;

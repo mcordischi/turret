@@ -16,7 +16,7 @@
 #include "HorizontalTracker.h"
 #include "OpenCVDetector.h"
 #include "Drawer.h"
-
+#include "squareobjectselector.h"
 
 using namespace std;
 using namespace cv;
@@ -185,7 +185,8 @@ void click_callback(int event, int x, int y, int, void*)
 {
     if  ( event == EVENT_LBUTTONDOWN )
     {
-        ObjectSelector sel(50);
+//        ObjectSelector sel(50);
+        squareObjectSelector sel;
         r = sel.getObjects(src,Point2d(x,y));
         namedWindow( "Target", CV_WINDOW_AUTOSIZE );
         //namedWindow( "1", CV_WINDOW_AUTOSIZE );
