@@ -277,7 +277,7 @@ void startTracking( Mat* target){
             //draw image
             cout << "FOUND "<< gradPos.x << "," << gradPos.y << endl ;
             cout << "\t" << targetPosition.x<< "," << targetPosition.y<< endl;
-            cout << "\t" << (double)frame->cols << "," << (double)frame->rows << endl;
+            //cout << "\t" << (double)frame->cols << "," << (double)frame->rows << endl;
             cout << "\t" << targetPosition.x /(double)frame->cols << "," << targetPosition.y/(double)frame->rows << endl;
 
 
@@ -286,7 +286,7 @@ void startTracking( Mat* target){
             //Notify Tracker
             tracker->nextStepOnDetect(gradPos);
         } else{
-            if(matchCount >0) cout << matchCount <<"/" << TRACK_WINDOW << endl;
+            /*if(matchCount >0)*/ cout << matchCount <<"/" << TRACK_WINDOW << endl;
             tracker->nextStepOnTrack();
         }
 

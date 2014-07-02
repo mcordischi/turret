@@ -80,15 +80,15 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
 
     for(int i = 0; i < matches.size(); i++) //THIS LOOP IS SENSITIVE TO SEGFAULTS
        {
-        if(matches[i].size()==2 && (matches[i][0].distance < 0.825*(matches[i][1].distance)))
+        if(matches[i].size()==2 && (matches[i][0].distance < 0.7*(matches[i][1].distance)))
         {
             good_matches.push_back(matches[i][0]);
             }
         }
     std::cout << "Matches:" << good_matches.size() << "/" << matches.size()
         << " Needed:" << MIN_GOOD_MATCHES_RATIO * kpTarget.size()<< std::endl;
-//    if (good_matches.size() >= MIN_GOOD_MATCHES)
-    if(good_matches.size() >= MIN_GOOD_MATCHES_RATIO * kpTarget.size() && good_matches.size()>=4)
+      if (good_matches.size() >= 4)
+//    if(good_matches.size() >= MIN_GOOD_MATCHES_RATIO * kpTarget.size() && good_matches.size()>=4)
         {
             //@Deprecated
         for( int i = 0; i < good_matches.size(); i++ )

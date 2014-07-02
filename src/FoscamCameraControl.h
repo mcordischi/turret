@@ -13,7 +13,7 @@
 
 
 //Movement Constants
-#define STEP_DEGREE 20 //REAL: 4
+#define STEP_DEGREE 4 //REAL: 4
 #define MAX_UP 60
 #define MAX_DW -60
 #define MAX_LF -150
