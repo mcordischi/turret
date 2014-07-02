@@ -3,27 +3,17 @@
 
 HorizontalTracker::HorizontalTracker(AbstractCameraControl* controller){
     this->controller = controller;
-    state = INITIAL_STATE;
+    state = RH_STATE;
 }
 
 
 void  HorizontalTracker::nextStepOnTrack(){
-    bool end = false;
-    while(!end){
-        int direction;
-        switch(state){
-            case RH_STATE: direction = RH_STATE_MOVE;
-                          break;
-            case LF_STATE: direction = LF_STATE_MOVE;
-        }
-        if(!controller->isReady()) return;
+    if(!controller->isReady()) return;
 
-        if (!controller->moveStep(direction)){
-            //change state
-            state = (state == RH_STATE) ? LF_STATE : RH_STATE;
-        } else {
-            end = true;
-        }
+    if (!controller->moveStep(state)){
+        //change state
+        state = (state == RH_STATE) ? LF_STATE : RH_STATE;
+        controller->moveStep(state);
     }
 }
 

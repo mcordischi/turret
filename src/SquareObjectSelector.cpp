@@ -1,16 +1,16 @@
-#include "squareobjectselector.h"
+#include "SquareObjectSelector.h"
 #include <iostream>
 
-squareObjectSelector::squareObjectSelector(double wideRatio)
+SquareObjectSelector::SquareObjectSelector(double wideRatio)
 {
     this->wideRatio = wideRatio;
 }
 
-squareObjectSelector::squareObjectSelector(){
+SquareObjectSelector::SquareObjectSelector(){
     this->wideRatio = DEFAULT_WIDE_RATIO ;
 }
 
-std::vector<cv::Mat> squareObjectSelector::getObjects(cv::Mat * src, cv::Point2f p)
+std::vector<cv::Mat> SquareObjectSelector::getObjects(cv::Mat * src, cv::Point2f p)
 {
 	// The return vector
     std::vector<cv::Mat> retVal;

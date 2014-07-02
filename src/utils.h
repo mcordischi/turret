@@ -12,10 +12,10 @@
 
 //DETECTOR CONSTANTS
 #define MIN_KEY_POINTS 4 // min number of kp to accept the target image, MUST be >=4
-#define MIN_GOOD_MATCHES_RATIO 0.4
+#define MIN_GOOD_MATCHES_RATIO 0.25
 
 //TRACKING CONSTANTS
-#define TRACK_WINDOW 7 //Number of frames to analyze at once
+#define TRACK_WINDOW 5 //Number of frames to analyze at once
 #define MIN_MATCH_WINDOW 3 //Min number of frame matches in order to accept the target has been found
 
 

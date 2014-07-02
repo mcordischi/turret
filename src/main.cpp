@@ -14,10 +14,11 @@
 
 #include "FoscamCameraControl.h"
 #include "HorizontalTracker.h"
+#include "HVTracker.h"
 #include "OpenCVDetector.h"
 #include "Drawer.h"
-#include "squareobjectselector.h"
-#include "facedetector.h"
+#include "SquareObjectSelector.h"
+#include "FaceDetector.h"
 
 using namespace std;
 using namespace cv;
@@ -123,13 +124,13 @@ int main(int argc, char* argv[]){
     controller->startCoordinates();
     wait(75);
 
+    drawer = new Drawer();
+    tracker = new HVTracker(controller);
     Mat* target;
     switch(system){
         case (NORMAL):{
             //normal program
-            tracker = new HorizontalTracker(controller);
             detector= new OpenCVDetector();
-            drawer = new Drawer();
 
             // Create Window
             namedWindow( "Source", CV_WINDOW_AUTOSIZE );
@@ -223,7 +224,7 @@ void click_callback(int event, int x, int y, int, void*)
     if  ( event == EVENT_LBUTTONDOWN )
     {
 //        ObjectSelector sel(50);
-        squareObjectSelector sel;
+        SquareObjectSelector sel;
         r = sel.getObjects(src,Point2d(x,y));
         namedWindow( "Target", CV_WINDOW_AUTOSIZE );
         cont = true;
@@ -289,7 +290,7 @@ void startTracking( Mat* target){
             tracker->nextStepOnTrack();
         }
 
-        drawer->drawKp(frame);
+        //drawer->drawKp(frame);
         //display image
         imshow( "Source", *frame );
         updateWindow("Source");

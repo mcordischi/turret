@@ -1,4 +1,4 @@
-#include "facedetector.h"
+#include "FaceDetector.h"
 
 
 FaceDetector::FaceDetector(): lPoint(0,0)

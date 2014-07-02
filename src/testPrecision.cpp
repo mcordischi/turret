@@ -2,8 +2,6 @@
 
 void testPrecision(AbstractCameraControl* controller, char* path, int iterations, bool display){
 
-     controller->startCoordinates();
-     wait(60);
      cv::Mat* initialImage = controller->getFrame();
 
     for(int i=0;i<iterations;i++){
@@ -12,16 +10,20 @@ void testPrecision(AbstractCameraControl* controller, char* path, int iterations
         int xMove= (i%6 +1)* 20;  //MAX = 120
 //        std::cout << "UP :" << yMove;
         controller->move(CAM_UP,yMove);
-        wait(yMove/5);
+        while(!controller->isReady())
+            wait(yMove/5);
 //         std::cout << "RH:" << xMove;
         controller->move(CAM_RH,xMove);
-        wait(xMove/10);
+        while(!controller->isReady())
+            wait(xMove/10);
 //        std::cout << "DW:";
         controller->move(CAM_DW,yMove);
-        wait(yMove/5);
+        while(!controller->isReady())
+            wait(yMove/5);
 //        std::cout << "LF:";
         controller->move(CAM_LF,xMove);
-        wait(xMove/10);
+         while(!controller->isReady())
+            wait(xMove/10);
     }
 
 

@@ -11,6 +11,7 @@
 
 //Camera codes
 //REDEFINE THEM IF NEEDED
+//TODO make a movement convention (with trackers)
 #define CAM_UP 0
 #define CAM_DW 2
 #define CAM_LF 6

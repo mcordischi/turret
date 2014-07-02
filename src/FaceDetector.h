@@ -1,5 +1,5 @@
-#ifndef FACEDETECTOR_H
-#define FACEDETECTOR_H
+#ifndef _FACE_DETECTOR_H_
+#define _FACE_DETECTOR_H_
 
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -17,4 +17,4 @@ private:
     cv::Point2f lPoint;
 };
 
-#endif // FACEDETECTOR_H
+#endif // _FACE_DETECTOR_H_

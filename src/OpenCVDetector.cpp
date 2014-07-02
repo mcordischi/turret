@@ -49,7 +49,7 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
     tgt_corners[3] = cvPoint( 0, target->rows );
 
 
-    if(! frame->data) { std::cout << "Null frame\n" ; return false;}
+    if(frame==NULL || !frame->data) { std::cout << "Null frame\n" ; return false;}
 
     Mat des_frame;  // frame descriptor
     std::vector<KeyPoint> kpFrame; // frame key points
@@ -66,6 +66,7 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
 
     if (kpFrame.empty()){
         std::cout << "frame without KP, ignoring frame\n";
+        return false;
     }
 
     extractor.compute( frameGray, kpFrame, des_frame );
@@ -77,16 +78,17 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
 
     matcher.knnMatch(des_object, des_frame, matches, 2);
 
-    for(int i = 0; i < min(des_frame.rows-1,(int) matches.size()); i++) //THIS LOOP IS SENSITIVE TO SEGFAULTS
+    for(int i = 0; i < matches.size(); i++) //THIS LOOP IS SENSITIVE TO SEGFAULTS
        {
-        if((matches[i][0].distance < 0.6*(matches[i][1].distance)) && ((int) matches[i].size()<=2 && (int) matches[i].size()>0))
+        if(matches[i].size()==2 && (matches[i][0].distance < 0.825*(matches[i][1].distance)))
         {
             good_matches.push_back(matches[i][0]);
             }
         }
-    std::cout << "Matches:" << good_matches.size() << " Needed:" << MIN_GOOD_MATCHES_RATIO * kpTarget.size()<< std::endl;
+    std::cout << "Matches:" << good_matches.size() << "/" << matches.size()
+        << " Needed:" << MIN_GOOD_MATCHES_RATIO * kpTarget.size()<< std::endl;
 //    if (good_matches.size() >= MIN_GOOD_MATCHES)
-    if(good_matches.size() >= MIN_GOOD_MATCHES_RATIO * kpTarget.size())
+    if(good_matches.size() >= MIN_GOOD_MATCHES_RATIO * kpTarget.size() && good_matches.size()>=4)
         {
             //@Deprecated
         for( int i = 0; i < good_matches.size(); i++ )
@@ -94,15 +96,23 @@ bool OpenCVDetector::identifyItem(cv::Mat* frame, cv::Point2f &result){
             //Get the keypoints from the good matches
             obj.push_back( kpTarget[ good_matches[i].queryIdx ].pt );
             scene.push_back( kpFrame[ good_matches[i].trainIdx ].pt );
-        }
+            //NEW! trying mean without perspective transformation
+            result.x += kpFrame[ good_matches[i].trainIdx ].pt.x;
+            result.y += kpFrame[ good_matches[i].trainIdx ].pt.y;
 
+        }
+        result.x /= good_matches.size();
+        result.y /= good_matches.size();
+        return true;
+
+        //@deprecated!
         H = findHomography( obj, scene, CV_RANSAC );
 
         perspectiveTransform( tgt_corners, scene_corners, H);
 
 
         //Get object's center position
-        for ( int i = 0 ; i< 4 ; i++){
+        for ( int i = 0 ; i< 4; i++){
             result.x += scene_corners[i].x;
             result.y += scene_corners[i].y;
         }

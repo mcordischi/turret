@@ -16,6 +16,10 @@ FoscamCameraControl::FoscamCameraControl(/*AlarmTriggerer* at,*/ char* url, char
     this->pwd = pwd;
     charImage = malloc(sizeof(char) * 320000);
     frame = new cv::Mat();
+    this->currentPosition.x=0;
+    this->currentPosition.y=0;
+    this->desiredPosition.x=0;
+    this->desiredPosition.y=0;
 }
 
 bool FoscamCameraControl::startCoordinates(){
