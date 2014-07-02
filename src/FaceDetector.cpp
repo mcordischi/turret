@@ -1,16 +1,20 @@
 #include "FaceDetector.h"
+#include <iostream>
 
 
 FaceDetector::FaceDetector(): lPoint(0,0)
 {
     cv::String face_cascade_name = "res/haarcascade_frontalface_alt.xml";
-    face_cascade.load( face_cascade_name );
+    if  (!face_cascade.load( face_cascade_name ))
+        std::cout << "Training file missing";
 }
 
 FaceDetector::FaceDetector(cv::Point2f p) : lPoint(p)
 {
     cv::String face_cascade_name = "res/haarcascade_frontalface_alt.xml";
-    face_cascade.load( face_cascade_name );
+    if  (!face_cascade.load( face_cascade_name ))
+        std::cout << "Training file missing";
+
 }
 
 bool FaceDetector::identifyItem(cv::Mat *frame, cv::Point2f &result)
